@@ -3,23 +3,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('plugins_loaded', 'init_paygatedottogateway_alchemypay_gateway');
+add_action('plugins_loaded', 'init_paygatedottogateway_revolut_gateway');
 
-function init_paygatedottogateway_alchemypay_gateway() {
+function init_paygatedottogateway_revolut_gateway() {
     if (!class_exists('WC_Payment_Gateway')) {
         return;
     }
 
-class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway {
+
+class PayGateDotTo_Instant_Payment_Gateway_Revolut extends WC_Payment_Gateway {
 
     protected $icon_url;
-    protected $alchemypayorg_wallet_address;
+    protected $revolutcom_wallet_address;
 
     public function __construct() {
-        $this->id                 = 'paygatedotto-instant-payment-gateway-alchemypay';
+        $this->id                 = 'paygatedotto-instant-payment-gateway-revolut';
         $this->icon = sanitize_url($this->get_option('icon_url'));
-        $this->method_title       = esc_html__('Instant Approval Payment Gateway with Instant Payouts (alchemypay.org)', 'instant-approval-payment-gateway'); // Escaping title
-        $this->method_description = esc_html__('Instant Approval High Risk Merchant Gateway with instant payouts to your USDC POLYGON wallet using alchemypay.org infrastructure', 'instant-approval-payment-gateway'); // Escaping description
+        $this->method_title       = esc_html__('Instant Approval Payment Gateway with Instant Payouts (revolut.com)', 'instant-approval-payment-gateway'); // Escaping title
+        $this->method_description = esc_html__('Instant Approval High Risk Merchant Gateway with instant payouts to your USDC POLYGON wallet using revolut.com infrastructure', 'instant-approval-payment-gateway'); // Escaping description
         $this->has_fields         = false;
 
         $this->init_form_fields();
@@ -29,7 +30,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway
         $this->description = sanitize_text_field($this->get_option('description'));
 
         // Use the configured settings for redirect and icon URLs
-        $this->alchemypayorg_wallet_address = sanitize_text_field($this->get_option('alchemypayorg_wallet_address'));
+        $this->revolutcom_wallet_address = sanitize_text_field($this->get_option('revolutcom_wallet_address'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -40,7 +41,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway
             'enabled' => array(
                 'title'   => esc_html__('Enable/Disable', 'instant-approval-payment-gateway'), // Escaping title
                 'type'    => 'checkbox',
-                'label'   => esc_html__('Enable alchemypay.org payment gateway', 'instant-approval-payment-gateway'), // Escaping label
+                'label'   => esc_html__('Enable revolut.com payment gateway', 'instant-approval-payment-gateway'), // Escaping label
                 'default' => 'no',
             ),
             'title' => array(
@@ -57,7 +58,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway
                 'default'     => esc_html__('Pay via credit card', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
-            'alchemypayorg_wallet_address' => array(
+            'revolutcom_wallet_address' => array(
                 'title'       => esc_html__('Wallet Address', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
                 'description' => esc_html__('Insert your USDC (Polygon) wallet address to receive instant payouts. Payouts maybe sent in USDC or USDT (Polygon or BEP-20) or POL native token. Same wallet should work to receive all. Make sure you use a self-custodial wallet to receive payouts.', 'instant-approval-payment-gateway'), // Escaping description
@@ -77,16 +78,16 @@ class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway
     WC_Admin_Settings::add_error(__('Nonce verification failed. Please try again.', 'instant-approval-payment-gateway'));
     return false;
 }
-        $alchemypayorg_admin_wallet_address = isset($_POST[$this->plugin_id . $this->id . '_alchemypayorg_wallet_address']) ? sanitize_text_field( wp_unslash( $_POST[$this->plugin_id . $this->id . '_alchemypayorg_wallet_address'])) : '';
+        $revolutcom_admin_wallet_address = isset($_POST[$this->plugin_id . $this->id . '_revolutcom_wallet_address']) ? sanitize_text_field( wp_unslash( $_POST[$this->plugin_id . $this->id . '_revolutcom_wallet_address'])) : '';
 
         // Check if wallet address starts with "0x"
-        if (substr($alchemypayorg_admin_wallet_address, 0, 2) !== '0x') {
+        if (substr($revolutcom_admin_wallet_address, 0, 2) !== '0x') {
             WC_Admin_Settings::add_error(__('Invalid Wallet Address: Please insert your USDC Polygon wallet address.', 'instant-approval-payment-gateway'));
             return false;
         }
 
         // Check if wallet address matches the USDC contract address
-        if (strtolower($alchemypayorg_admin_wallet_address) === '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359') {
+        if (strtolower($revolutcom_admin_wallet_address) === '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359') {
             WC_Admin_Settings::add_error(__('Invalid Wallet Address: Please insert your USDC Polygon wallet address.', 'instant-approval-payment-gateway'));
             return false;
         }
@@ -96,32 +97,32 @@ class PayGateDotTo_Instant_Payment_Gateway_Alchemypay extends WC_Payment_Gateway
     }
     public function process_payment($order_id) {
         $order = wc_get_order($order_id);
-        $paygatedottogateway_alchemypayorg_currency = get_woocommerce_currency();
-		$paygatedottogateway_alchemypayorg_total = $order->get_total();
-		$paygatedottogateway_alchemypayorg_nonce = wp_create_nonce( 'paygatedottogateway_alchemypayorg_nonce_' . $order_id );
-		$paygatedottogateway_alchemypayorg_callback = add_query_arg(array('order_id' => $order_id, 'nonce' => $paygatedottogateway_alchemypayorg_nonce,), rest_url('paygatedottogateway/v1/paygatedottogateway-alchemypayorg/'));
-		$paygatedottogateway_alchemypayorg_email = urlencode(sanitize_email($order->get_billing_email()));
-		$paygatedottogateway_alchemypayorg_final_total = $paygatedottogateway_alchemypayorg_total;
-		
-if ($paygatedottogateway_alchemypayorg_currency === 'USD') {
-        $paygatedottogateway_alchemypayorg_minimumcheck = $paygatedottogateway_alchemypayorg_total;
+        $paygatedottogateway_revolutcom_currency = get_woocommerce_currency();
+		$paygatedottogateway_revolutcom_total = $order->get_total();
+		$paygatedottogateway_revolutcom_nonce = wp_create_nonce( 'paygatedottogateway_revolutcom_nonce_' . $order_id );
+		$paygatedottogateway_revolutcom_callback = add_query_arg(array('order_id' => $order_id, 'nonce' => $paygatedottogateway_revolutcom_nonce,), rest_url('paygatedottogateway/v1/paygatedottogateway-revolutcom/'));
+		$paygatedottogateway_revolutcom_email = urlencode(sanitize_email($order->get_billing_email()));
+		$paygatedottogateway_revolutcom_final_total = $paygatedottogateway_revolutcom_total;
+
+if ($paygatedottogateway_revolutcom_currency === 'USD') {
+        $paygatedottogateway_revolutcom_minimumcheck = $paygatedottogateway_revolutcom_total;
 		} else {
 		
-$paygatedottogateway_alchemypayorg_minimumcheck_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_alchemypayorg_total . '&from=' . strtolower($paygatedottogateway_alchemypayorg_currency), array('timeout' => 30));
+$paygatedottogateway_revolutcom_minimumcheck_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_revolutcom_total . '&from=' . strtolower($paygatedottogateway_revolutcom_currency), array('timeout' => 30));
 
-if (is_wp_error($paygatedottogateway_alchemypayorg_minimumcheck_response)) {
+if (is_wp_error($paygatedottogateway_revolutcom_minimumcheck_response)) {
     // Handle error
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed due to failed currency conversion process, please try again', 'instant-approval-payment-gateway'), 'error');
     return null;
 } else {
 
-$paygatedottogateway_alchemypayorg_minimumcheck_body = wp_remote_retrieve_body($paygatedottogateway_alchemypayorg_minimumcheck_response);
-$paygatedottogateway_alchemypayorg_minimum_conversion_resp = json_decode($paygatedottogateway_alchemypayorg_minimumcheck_body, true);
+$paygatedottogateway_revolutcom_minimumcheck_body = wp_remote_retrieve_body($paygatedottogateway_revolutcom_minimumcheck_response);
+$paygatedottogateway_revolutcom_minimum_conversion_resp = json_decode($paygatedottogateway_revolutcom_minimumcheck_body, true);
 
-if ($paygatedottogateway_alchemypayorg_minimum_conversion_resp && isset($paygatedottogateway_alchemypayorg_minimum_conversion_resp['value_coin'])) {
+if ($paygatedottogateway_revolutcom_minimum_conversion_resp && isset($paygatedottogateway_revolutcom_minimum_conversion_resp['value_coin'])) {
     // Escape output
-    $paygatedottogateway_alchemypayorg_minimum_conversion_total	= sanitize_text_field($paygatedottogateway_alchemypayorg_minimum_conversion_resp['value_coin']);
-    $paygatedottogateway_alchemypayorg_minimumcheck = (float)$paygatedottogateway_alchemypayorg_minimum_conversion_total;	
+    $paygatedottogateway_revolutcom_minimum_conversion_total	= sanitize_text_field($paygatedottogateway_revolutcom_minimum_conversion_resp['value_coin']);
+    $paygatedottogateway_revolutcom_minimumcheck = (float)$paygatedottogateway_revolutcom_minimum_conversion_total;	
 } else {
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (unsupported store currency)', 'instant-approval-payment-gateway'), 'error');
     return null;
@@ -129,33 +130,33 @@ if ($paygatedottogateway_alchemypayorg_minimum_conversion_resp && isset($paygate
 		}
 		}
 		
-if ($paygatedottogateway_alchemypayorg_minimumcheck < 15) {
+if ($paygatedottogateway_revolutcom_minimumcheck < 15) {
 paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $15 USD or more.', 'instant-approval-payment-gateway'), 'error');
 return null;
-}		
+}
 	
-$paygatedottogateway_alchemypayorg_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->alchemypayorg_wallet_address .'&callback=' . urlencode($paygatedottogateway_alchemypayorg_callback), array('timeout' => 30));
+$paygatedottogateway_revolutcom_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->revolutcom_wallet_address .'&callback=' . urlencode($paygatedottogateway_revolutcom_callback), array('timeout' => 30));
 
-if (is_wp_error($paygatedottogateway_alchemypayorg_gen_wallet)) {
+if (is_wp_error($paygatedottogateway_revolutcom_gen_wallet)) {
     // Handle error
     paygatedottogateway_add_notice(__('Wallet error:', 'instant-approval-payment-gateway') . __('Payment could not be processed due to incorrect payout wallet settings, please contact website admin', 'instant-approval-payment-gateway'), 'error');
     return null;
 } else {
-	$paygatedottogateway_alchemypayorg_wallet_body = wp_remote_retrieve_body($paygatedottogateway_alchemypayorg_gen_wallet);
-	$paygatedottogateway_alchemypayorg_wallet_decbody = json_decode($paygatedottogateway_alchemypayorg_wallet_body, true);
+	$paygatedottogateway_revolutcom_wallet_body = wp_remote_retrieve_body($paygatedottogateway_revolutcom_gen_wallet);
+	$paygatedottogateway_revolutcom_wallet_decbody = json_decode($paygatedottogateway_revolutcom_wallet_body, true);
 
  // Check if decoding was successful
-    if ($paygatedottogateway_alchemypayorg_wallet_decbody && isset($paygatedottogateway_alchemypayorg_wallet_decbody['address_in'])) {
+    if ($paygatedottogateway_revolutcom_wallet_decbody && isset($paygatedottogateway_revolutcom_wallet_decbody['address_in'])) {
         // Store the address_in as a variable
-        $paygatedottogateway_alchemypayorg_gen_addressIn = wp_kses_post($paygatedottogateway_alchemypayorg_wallet_decbody['address_in']);
-        $paygatedottogateway_alchemypayorg_gen_polygon_addressIn = sanitize_text_field($paygatedottogateway_alchemypayorg_wallet_decbody['polygon_address_in']);
-		$paygatedottogateway_alchemypayorg_gen_callback = sanitize_url($paygatedottogateway_alchemypayorg_wallet_decbody['callback_url']);
-		// Save $alchemypayorgresponse in order meta data
-    $order->add_meta_data('paygatedotto_alchemypayorg_tracking_address', $paygatedottogateway_alchemypayorg_gen_addressIn, true);
-    $order->add_meta_data('paygatedotto_alchemypayorg_polygon_temporary_order_wallet_address', $paygatedottogateway_alchemypayorg_gen_polygon_addressIn, true);
-    $order->add_meta_data('paygatedotto_alchemypayorg_callback', $paygatedottogateway_alchemypayorg_gen_callback, true);
-	$order->add_meta_data('paygatedotto_alchemypayorg_converted_amount', $paygatedottogateway_alchemypayorg_final_total, true);
-	$order->add_meta_data('paygatedotto_alchemypayorg_nonce', $paygatedottogateway_alchemypayorg_nonce, true);
+        $paygatedottogateway_revolutcom_gen_addressIn = wp_kses_post($paygatedottogateway_revolutcom_wallet_decbody['address_in']);
+        $paygatedottogateway_revolutcom_gen_polygon_addressIn = sanitize_text_field($paygatedottogateway_revolutcom_wallet_decbody['polygon_address_in']);
+		$paygatedottogateway_revolutcom_gen_callback = sanitize_url($paygatedottogateway_revolutcom_wallet_decbody['callback_url']);
+		// Save $revolutcomresponse in order meta data
+    $order->add_meta_data('paygatedotto_revolutcom_tracking_address', $paygatedottogateway_revolutcom_gen_addressIn, true);
+    $order->add_meta_data('paygatedotto_revolutcom_polygon_temporary_order_wallet_address', $paygatedottogateway_revolutcom_gen_polygon_addressIn, true);
+    $order->add_meta_data('paygatedotto_revolutcom_callback', $paygatedottogateway_revolutcom_gen_callback, true);
+	$order->add_meta_data('paygatedotto_revolutcom_converted_amount', $paygatedottogateway_revolutcom_final_total, true);
+	$order->add_meta_data('paygatedotto_revolutcom_nonce', $paygatedottogateway_revolutcom_nonce, true);
     $order->save();
     } else {
         paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (wallet address error)', 'instant-approval-payment-gateway'), 'error');
@@ -173,7 +174,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://checkout.paygate.to/process-payment.php?address=' . $paygatedottogateway_alchemypayorg_gen_addressIn . '&amount=' . (float)$paygatedottogateway_alchemypayorg_final_total . '&provider=alchemypay&email=' . $paygatedottogateway_alchemypayorg_email . '&currency=' . $paygatedottogateway_alchemypayorg_currency,
+            'redirect' => 'https://checkout.paygate.to/process-payment.php?address=' . $paygatedottogateway_revolutcom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_revolutcom_final_total . '&provider=revolut&email=' . $paygatedottogateway_revolutcom_email . '&currency=' . $paygatedottogateway_revolutcom_currency,
         );
     }
 
@@ -182,29 +183,29 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_alchemypay($gateways) {
-    $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Alchemypay';
+function paygatedotto_add_instant_payment_gateway_revolut($gateways) {
+    $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Revolut';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_alchemypay');
+add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_revolut');
 }
 
 // Add custom endpoint for changing order status
-function paygatedottogateway_alchemypayorg_change_order_status_rest_endpoint() {
+function paygatedottogateway_revolutcom_change_order_status_rest_endpoint() {
     // Register custom route
-    register_rest_route( 'paygatedottogateway/v1', '/paygatedottogateway-alchemypayorg/', array(
+    register_rest_route( 'paygatedottogateway/v1', '/paygatedottogateway-revolutcom/', array(
         'methods'  => 'GET',
-        'callback' => 'paygatedottogateway_alchemypayorg_change_order_status_callback',
+        'callback' => 'paygatedottogateway_revolutcom_change_order_status_callback',
         'permission_callback' => '__return_true',
     ));
 }
-add_action( 'rest_api_init', 'paygatedottogateway_alchemypayorg_change_order_status_rest_endpoint' );
+add_action( 'rest_api_init', 'paygatedottogateway_revolutcom_change_order_status_rest_endpoint' );
 
 // Callback function to change order status
-function paygatedottogateway_alchemypayorg_change_order_status_callback( $request ) {
+function paygatedottogateway_revolutcom_change_order_status_callback( $request ) {
     $order_id = absint($request->get_param( 'order_id' ));
-	$paygatedottogateway_alchemypayorggetnonce = sanitize_text_field($request->get_param( 'nonce' ));
-	$paygatedottogateway_alchemypayorgpaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
+	$paygatedottogateway_revolutcomgetnonce = sanitize_text_field($request->get_param( 'nonce' ));
+	$paygatedottogateway_revolutcompaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
 
     // Check if order ID parameter exists
     if ( empty( $order_id ) ) {
@@ -220,16 +221,16 @@ function paygatedottogateway_alchemypayorg_change_order_status_callback( $reques
     }
 	
 	// Verify nonce
-    if ( empty( $paygatedottogateway_alchemypayorggetnonce ) || $order->get_meta('paygatedotto_alchemypayorg_nonce', true) !== $paygatedottogateway_alchemypayorggetnonce ) {
+    if ( empty( $paygatedottogateway_revolutcomgetnonce ) || $order->get_meta('paygatedotto_revolutcom_nonce', true) !== $paygatedottogateway_revolutcomgetnonce ) {
         return new WP_Error( 'invalid_nonce', __( 'Invalid nonce.', 'instant-approval-payment-gateway' ), array( 'status' => 403 ) );
     }
 
-    // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-alchemypay'
-    if ( $order && $order->get_status() !== 'processing' && $order->get_status() !== 'completed' && 'paygatedotto-instant-payment-gateway-alchemypay' === $order->get_payment_method() ) {
+    // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-revolut'
+    if ( $order && $order->get_status() !== 'processing' && $order->get_status() !== 'completed' && 'paygatedotto-instant-payment-gateway-revolut' === $order->get_payment_method() ) {
         // Change order status to processing
 		$order->payment_complete();
 		/* translators: 1: Transaction ID */
-		$order->add_order_note( sprintf(__('Payment completed by the provider TXID: %1$s', 'instant-approval-payment-gateway'), $paygatedottogateway_alchemypayorgpaid_txid_out) );
+		$order->add_order_note( sprintf(__('Payment completed by the provider TXID: %1$s', 'instant-approval-payment-gateway'), $paygatedottogateway_revolutcompaid_txid_out) );
         // Return success response
         return array( 'message' => 'Order marked as paid and status changed.' );
     } else {

@@ -136,26 +136,32 @@ paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-ga
 return null;
 }	
 		
-$paygatedottogateway_werteur_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_werteur_total . '&from=' . strtolower($paygatedottogateway_werteur_currency), array('timeout' => 30));
+if ($paygatedottogateway_werteur_currency === 'USD') {
+$paygatedottogateway_werteur_usdconver_reference_total = (float)$paygatedottogateway_werteur_total;
+} else {
 
-if (is_wp_error($paygatedottogateway_werteur_response)) {
+$paygatedottogateway_werteur_usdconver_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_werteur_total . '&from=' . strtolower($paygatedottogateway_werteur_currency), array('timeout' => 30));
+
+if (is_wp_error($paygatedottogateway_werteur_usdconver_response)) {
     // Handle error
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed due to failed currency conversion process, please try again', 'instant-approval-payment-gateway'), 'error');
     return null;
 } else {
 
-$paygatedottogateway_werteur_body = wp_remote_retrieve_body($paygatedottogateway_werteur_response);
-$paygatedottogateway_werteur_conversion_resp = json_decode($paygatedottogateway_werteur_body, true);
+$paygatedottogateway_werteur_usdconver_body = wp_remote_retrieve_body($paygatedottogateway_werteur_usdconver_response);
+$paygatedottogateway_werteur_usdconver_conversion_resp = json_decode($paygatedottogateway_werteur_usdconver_body, true);
 
-if ($paygatedottogateway_werteur_conversion_resp && isset($paygatedottogateway_werteur_conversion_resp['value_coin'])) {
+if ($paygatedottogateway_werteur_usdconver_conversion_resp && isset($paygatedottogateway_werteur_usdconver_conversion_resp['value_coin'])) {
     // Escape output
-    $paygatedottogateway_werteur_finalusd_total	= sanitize_text_field($paygatedottogateway_werteur_conversion_resp['value_coin']);
-    $paygatedottogateway_werteur_reference_total = (float)$paygatedottogateway_werteur_finalusd_total;	
+    $paygatedottogateway_werteur_usdconver_finalusd_total	= sanitize_text_field($paygatedottogateway_werteur_usdconver_conversion_resp['value_coin']);
+    $paygatedottogateway_werteur_usdconver_reference_total = (float)$paygatedottogateway_werteur_usdconver_finalusd_total;	
 } else {
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (unsupported store currency)', 'instant-approval-payment-gateway'), 'error');
     return null;
 }	
 		}
+
+}
 		
 	
 $paygatedottogateway_werteur_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->werteur_wallet_address .'&callback=' . urlencode($paygatedottogateway_werteur_callback), array('timeout' => 30));
@@ -179,7 +185,7 @@ if (is_wp_error($paygatedottogateway_werteur_gen_wallet)) {
     $order->add_meta_data('paygatedotto_werteur_polygon_temporary_order_wallet_address', $paygatedottogateway_werteur_gen_polygon_addressIn, true);
     $order->add_meta_data('paygatedotto_werteur_callback', $paygatedottogateway_werteur_gen_callback, true);
 	$order->add_meta_data('paygatedotto_werteur_converted_amount', $paygatedottogateway_werteur_payment_final_total, true);
-	$order->add_meta_data('paygatedotto_werteur_expected_amount', $paygatedottogateway_werteur_reference_total, true);
+	$order->add_meta_data('paygatedotto_werteur_expected_amount', $paygatedottogateway_werteur_usdconver_reference_total, true);
 	$order->add_meta_data('paygatedotto_werteur_nonce', $paygatedottogateway_werteur_nonce, true);
     $order->save();
     } else {
