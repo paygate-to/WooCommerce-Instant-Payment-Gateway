@@ -3,12 +3,12 @@
  * Plugin Name: Instant Approval Payment Gateway with Instant Payouts
  * Plugin URI: https://paygate.to/instant-payment-gateway/
  * Description: Instant Approval High Risk Merchant Gateway with instant payouts to your USDC wallet.
- * Version: 1.1.9
+ * Version: 1.2.0
  * Requires Plugins: woocommerce
  * Requires at least: 5.8
- * Tested up to: 6.7.2
+ * Tested up to: 6.8
  * WC requires at least: 5.8
- * WC tested up to: 9.7.1
+ * WC tested up to: 9.8.1
  * Requires PHP: 7.2
  * Author: PayGate.to
  * Author URI: https://paygate.to/
@@ -88,6 +88,7 @@ add_action('wp_enqueue_scripts', 'paygatedottogateway_enqueue_styles');
     include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-hostedpaygatedotto.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-wert.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-werteur.php'); // Include the payment gateway class
+	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-switchere.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-revolut.php'); // Include the payment gateway class	
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-stripe.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-simpleswap.php'); // Include the payment gateway class
@@ -108,6 +109,7 @@ add_action('wp_enqueue_scripts', 'paygatedottogateway_enqueue_styles');
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-bitnovo.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-robinhood.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-coinbase.php'); // Include the payment gateway class
+	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-finchpay.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-upi.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-interac.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-simplex.php'); // Include the payment gateway class
