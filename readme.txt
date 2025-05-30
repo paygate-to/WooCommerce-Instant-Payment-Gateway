@@ -3,7 +3,7 @@ Contributors: paygatedotto
 Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
-Tested up to: 6.8.1
+Tested up to: 6.8
 Stable tag: 1.2.2
 Requires PHP: 7.2
 WC requires at least: 5.8
