@@ -15,6 +15,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
 
     protected $icon_url;
     protected $hostedpaygatedotto_wallet_address;
+    protected $hostedpaygatedotto_custom_domain;
 
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-hostedpaygatedotto';
@@ -30,6 +31,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
         $this->description = sanitize_text_field($this->get_option('description'));
 
         // Use the configured settings for redirect and icon URLs
+        $this->hostedpaygatedotto_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('hostedpaygatedotto_custom_domain'))), '/');
         $this->hostedpaygatedotto_wallet_address = sanitize_text_field($this->get_option('hostedpaygatedotto_wallet_address'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
@@ -56,6 +58,13 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
                 'type'        => 'textarea',
                 'description' => esc_html__('Payment method description that users will see during checkout.', 'instant-approval-payment-gateway'), // Escaping description
                 'default'     => esc_html__('Pay via credit card', 'instant-approval-payment-gateway'), // Escaping default value
+                'desc_tip'    => true,
+            ),
+            'hostedpaygatedotto_custom_domain' => array(
+                'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Follow the custom domain guide to use your domain for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
             'hostedpaygatedotto_wallet_address' => array(
@@ -170,7 +179,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://checkout.paygate.to/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency,
+            'redirect' => 'https://' . $this->hostedpaygatedotto_wallet_address . '/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency,
         );
     }
 

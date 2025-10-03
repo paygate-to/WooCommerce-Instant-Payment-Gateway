@@ -14,6 +14,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Transfi extends WC_Payment_Gateway {
 
     protected $icon_url;
     protected $transficom_wallet_address;
+    protected $transficom_custom_domain;
 
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-transfi';
@@ -29,6 +30,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Transfi extends WC_Payment_Gateway {
         $this->description = sanitize_text_field($this->get_option('description'));
 
         // Use the configured settings for redirect and icon URLs
+        $this->transficom_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('transficom_custom_domain'))), '/');
         $this->transficom_wallet_address = sanitize_text_field($this->get_option('transficom_wallet_address'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
@@ -55,6 +57,13 @@ class PayGateDotTo_Instant_Payment_Gateway_Transfi extends WC_Payment_Gateway {
                 'type'        => 'textarea',
                 'description' => esc_html__('Payment method description that users will see during checkout.', 'instant-approval-payment-gateway'), // Escaping description
                 'default'     => esc_html__('Pay via credit card', 'instant-approval-payment-gateway'), // Escaping default value
+                'desc_tip'    => true,
+            ),
+            'transficom_custom_domain' => array(
+                'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Follow the custom domain guide to use your domain for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
             'transficom_wallet_address' => array(
@@ -170,7 +179,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://checkout.paygate.to/process-payment.php?address=' . $paygatedottogateway_transficom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_transficom_final_total . '&provider=transfi&email=' . $paygatedottogateway_transficom_email . '&currency=' . $paygatedottogateway_transficom_currency,
+            'redirect' => 'https://' . $this->transficom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_transficom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_transficom_final_total . '&provider=transfi&email=' . $paygatedottogateway_transficom_email . '&currency=' . $paygatedottogateway_transficom_currency,
         );
     }
 

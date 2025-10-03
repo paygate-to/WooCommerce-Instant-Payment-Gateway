@@ -15,6 +15,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Upi extends WC_Payment_Gateway {
 
     protected $icon_url;
     protected $upiimps_wallet_address;
+    protected $upiimps_custom_domain;
 
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-upi';
@@ -30,6 +31,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Upi extends WC_Payment_Gateway {
         $this->description = sanitize_text_field($this->get_option('description'));
 
         // Use the configured settings for redirect and icon URLs
+        $this->upiimps_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('upiimps_custom_domain'))), '/');
         $this->upiimps_wallet_address = sanitize_text_field($this->get_option('upiimps_wallet_address'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
@@ -56,6 +58,13 @@ class PayGateDotTo_Instant_Payment_Gateway_Upi extends WC_Payment_Gateway {
                 'type'        => 'textarea',
                 'description' => esc_html__('Payment method description that users will see during checkout.', 'instant-approval-payment-gateway'), // Escaping description
                 'default'     => esc_html__('Pay via UPI/IMPS', 'instant-approval-payment-gateway'), // Escaping default value
+                'desc_tip'    => true,
+            ),
+            'upiimps_custom_domain' => array(
+                'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Follow the custom domain guide to use your domain for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
             'upiimps_wallet_address' => array(
@@ -112,7 +121,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Upi extends WC_Payment_Gateway {
     return null;	
 		
 	} elseif ($paygatedottogateway_upiimps_final_total < 100) {
-paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be ₹100 or more.', 'instant-approval-payment-gateway'), 'error');
+paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be â‚¹100 or more.', 'instant-approval-payment-gateway'), 'error');
 return null;
 }
 		
@@ -178,7 +187,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://checkout.paygate.to/process-payment.php?address=' . $paygatedottogateway_upiimps_gen_addressIn . '&amount=' . (float)$paygatedottogateway_upiimps_final_total . '&provider=upi&email=' . $paygatedottogateway_upiimps_email . '&currency=' . $paygatedottogateway_upiimps_currency,
+            'redirect' => 'https://' . $this->upiimps_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_upiimps_gen_addressIn . '&amount=' . (float)$paygatedottogateway_upiimps_final_total . '&provider=upi&email=' . $paygatedottogateway_upiimps_email . '&currency=' . $paygatedottogateway_upiimps_currency,
         );
     }
 
