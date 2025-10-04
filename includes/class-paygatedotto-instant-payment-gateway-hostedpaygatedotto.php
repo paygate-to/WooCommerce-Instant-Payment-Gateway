@@ -63,7 +63,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
             'hostedpaygatedotto_custom_domain' => array(
                 'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
-                'description' => esc_html__('Follow the custom domain guide to use your domain for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'description' => esc_html__('Follow the custom domain guide to use your own domain name for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
                 'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
@@ -179,7 +179,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->hostedpaygatedotto_wallet_address . '/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency,
+            'redirect' => 'https://' . $this->hostedpaygatedotto_custom_domain . '/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency,
         );
     }
 

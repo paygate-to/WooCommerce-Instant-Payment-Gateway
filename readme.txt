@@ -4,7 +4,7 @@ Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
 Tested up to: 6.8
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 Requires PHP: 7.2
 WC requires at least: 5.8
 WC tested up to: 10.2.2
@@ -31,6 +31,7 @@ Powerful plugin for WooCommerce that allows you to accept payments for your high
 * Minimum order amount starts from $1 USD only for some providers.
 * Customizable payment gateway icon for each provider.
 * Multi-currency support
+* Use your own custom domain name for generated checkout links (optional feature).
 
 Minimum allowed order amount varies per payment provider you can [check the full list of minimum order value per payment provider](https://paygate.to/instant-payment-gateway/#minimumorder).
 
@@ -81,6 +82,10 @@ Anyone can use our payment plugin instantly without providing any information. H
 2. screenshot-2.png
 
 == Changelog ==
+
+= V1.2.6 =
+
+* Urgent bug fix for the multi-provider mode.
 
 = V1.2.5 =
 

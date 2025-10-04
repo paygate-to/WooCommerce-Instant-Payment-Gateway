@@ -62,7 +62,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Bitnovo extends WC_Payment_Gateway {
             'bitnovocom_custom_domain' => array(
                 'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
-                'description' => esc_html__('Follow the custom domain guide to use your domain for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'description' => esc_html__('Follow the custom domain guide to use your own domain name for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
                 'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
