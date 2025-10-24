@@ -139,8 +139,8 @@ if ($paygatedottogateway_mercuryoio_minimum_conversion_resp && isset($paygatedot
 		}
 		}
 		
-if ($paygatedottogateway_mercuryoio_minimumcheck < 30) {
-paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $30 USD or more.', 'instant-approval-payment-gateway'), 'error');
+if ($paygatedottogateway_mercuryoio_minimumcheck < 15) {
+paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $15 USD or more.', 'instant-approval-payment-gateway'), 'error');
 return null;
 }
 	

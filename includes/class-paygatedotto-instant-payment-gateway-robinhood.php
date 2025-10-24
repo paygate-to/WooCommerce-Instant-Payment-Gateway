@@ -183,7 +183,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->robinhoodcom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_robinhoodcom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_robinhoodcom_final_total . '&provider=robinhood&email=' . $paygatedottogateway_robinhoodcom_email . '&currency=' . $paygatedottogateway_robinhoodcom_currency,
+            'redirect' => 'https://' . $this->robinhoodcom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_robinhoodcom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_robinhoodcom_final_total . '&provider=robinhood&email=' . $paygatedottogateway_robinhoodcom_email . '&currency=USD',
         );
     }
 

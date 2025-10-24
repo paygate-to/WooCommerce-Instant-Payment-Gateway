@@ -183,7 +183,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->bitnovocom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_bitnovocom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_bitnovocom_final_total . '&provider=bitnovo&email=' . $paygatedottogateway_bitnovocom_email . '&currency=' . $paygatedottogateway_bitnovocom_currency,
+            'redirect' => 'https://' . $this->bitnovocom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_bitnovocom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_bitnovocom_final_total . '&provider=bitnovo&email=' . $paygatedottogateway_bitnovocom_email . '&currency=USD',
         );
     }
 

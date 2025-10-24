@@ -183,7 +183,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->stripecom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_stripecom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_stripecom_final_total . '&provider=stripe&email=' . $paygatedottogateway_stripecom_email . '&currency=' . $paygatedottogateway_stripecom_currency,
+            'redirect' => 'https://' . $this->stripecom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_stripecom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_stripecom_final_total . '&provider=stripe&email=' . $paygatedottogateway_stripecom_email . '&currency=USD',
         );
     }
 

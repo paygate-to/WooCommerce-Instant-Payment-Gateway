@@ -183,7 +183,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->rampnetwork_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_rampnetwork_gen_addressIn . '&amount=' . (float)$paygatedottogateway_rampnetwork_final_total . '&provider=rampnetwork&email=' . $paygatedottogateway_rampnetwork_email . '&currency=' . $paygatedottogateway_rampnetwork_currency,
+            'redirect' => 'https://' . $this->rampnetwork_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_rampnetwork_gen_addressIn . '&amount=' . (float)$paygatedottogateway_rampnetwork_final_total . '&provider=rampnetwork&email=' . $paygatedottogateway_rampnetwork_email . '&currency=USD',
         );
     }
 

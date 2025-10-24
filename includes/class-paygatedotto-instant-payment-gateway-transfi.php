@@ -179,7 +179,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->transficom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_transficom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_transficom_final_total . '&provider=transfi&email=' . $paygatedottogateway_transficom_email . '&currency=' . $paygatedottogateway_transficom_currency,
+            'redirect' => 'https://' . $this->transficom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_transficom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_transficom_final_total . '&provider=transfi&email=' . $paygatedottogateway_transficom_email . '&currency=USD',
         );
     }
 
