@@ -192,11 +192,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_revolut($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_revolut($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Revolut';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_revolut');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_revolut');
 }
 
 // Add custom endpoint for changing order status

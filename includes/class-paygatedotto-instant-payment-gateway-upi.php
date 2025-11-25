@@ -196,11 +196,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_upi($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_upi($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Upi';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_upi');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_upi');
 }
 
 // Add custom endpoint for changing order status

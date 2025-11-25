@@ -191,11 +191,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_transak($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_transak($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Transak';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_transak');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_transak');
 }
 
 // Add custom endpoint for changing order status

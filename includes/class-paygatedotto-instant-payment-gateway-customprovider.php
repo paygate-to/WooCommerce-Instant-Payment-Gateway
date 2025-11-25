@@ -17,6 +17,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
     protected $customprovider_custom_domain;
 	protected $customprovider_custom_provider_tag;
 	protected $customprovider_custom_minimum_amount;
+	protected $customprovider_tolerance_percentage;
 
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-customprovider';
@@ -35,6 +36,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
         $this->customprovider_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('customprovider_custom_domain'))), '/');
         $this->customprovider_wallet_address = sanitize_text_field($this->get_option('customprovider_wallet_address'));
 		$this->customprovider_custom_provider_tag = sanitize_text_field($this->get_option('customprovider_custom_provider_tag'));
+		$this->customprovider_tolerance_percentage = sanitize_text_field($this->get_option('customprovider_tolerance_percentage'));
 		$this->customprovider_custom_minimum_amount = floatval($this->get_option('customprovider_custom_minimum_amount'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
@@ -90,6 +92,25 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
                 'default'     => esc_html__('15', 'instant-approval-payment-gateway'), // Escaping default value
 				'desc_tip'    => true,
             ),
+			'customprovider_tolerance_percentage' => array(
+                'title'       => esc_html__('Fees Tolerance', 'instant-approval-payment-gateway'),
+                'type'        => 'select',
+                'description' => esc_html__('Select percentage to tolerate higher provider fees while detecting manipulation by bad customers at checkout page.', 'instant-approval-payment-gateway'),
+                'desc_tip'    => true,
+                'default'     => '0.60',
+                'options'     => array(
+                    '0.90'    => '10%',
+                    '0.80' => '20%',
+                    '0.70' => '30%',
+                    '0.60' => '40%',
+                    '0.50' => '50%',
+                    '0.40' => '60%',
+                    '0.30' => '70%',
+                    '0.20' => '80%',
+                    '0.10' => '90%',
+                    '0' => 'ETH Payouts (Disabled amount detection)'
+                ),
+            ),
             'icon_url' => array(
                 'title'       => esc_html__('Icon URL', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'url',
@@ -126,6 +147,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
         $paygatedottogateway_customprovider_currency = get_woocommerce_currency();
 		$paygatedottogateway_customprovider_total = $order->get_total();
 		$paygatedottogateway_customprovider_nonce = wp_create_nonce( 'paygatedottogateway_customprovider_nonce_' . $order_id );
+		$paygatedottogateway_customprovider_tolerance_percentage = $this->customprovider_tolerance_percentage;
 		$paygatedottogateway_customprovider_callback = add_query_arg(array('order_id' => $order_id, 'nonce' => $paygatedottogateway_customprovider_nonce,), rest_url('paygatedottogateway/v1/paygatedottogateway-customprovider/'));
 		$paygatedottogateway_customprovider_email = urlencode(sanitize_email($order->get_billing_email()));
 		
@@ -185,6 +207,7 @@ if (is_wp_error($paygatedottogateway_customprovider_gen_wallet)) {
 	$order->add_meta_data('paygatedotto_customprovider_converted_amount', $paygatedottogateway_customprovider_final_total, true);
 	$order->add_meta_data('paygatedotto_customprovider_expected_amount', $paygatedottogateway_customprovider_reference_total, true);
 	$order->add_meta_data('paygatedotto_customprovider_nonce', $paygatedottogateway_customprovider_nonce, true);
+	$order->add_meta_data('paygatedotto_customprovider_tolerance_percentage', $paygatedottogateway_customprovider_tolerance_percentage, true);
     $order->save();
     } else {
         paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (wallet address error)', 'instant-approval-payment-gateway'), 'error');
@@ -211,11 +234,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_customprovider($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_customprovider($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Customprovider';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_customprovider');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_customprovider');
 }
 
 // Add custom endpoint for changing order status
@@ -258,7 +281,7 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
     // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-customprovider'
     if ( $order && $order->get_status() !== 'processing' && $order->get_status() !== 'completed' && 'paygatedotto-instant-payment-gateway-customprovider' === $order->get_payment_method() ) {
 	$paygatedottogateway_customproviderexpected_amount = (float)$order->get_meta('paygatedotto_customprovider_expected_amount', true);
-	$paygatedottogateway_customproviderthreshold = 0.60 * $paygatedottogateway_customproviderexpected_amount;
+	$paygatedottogateway_customproviderthreshold = $order->get_meta('paygatedotto_customprovider_tolerance_percentage', true) * $paygatedottogateway_customproviderexpected_amount;
 		if ( $paygatedottogateway_customproviderfloatpaid_value_coin < $paygatedottogateway_customproviderthreshold ) {
 			// Mark the order as failed and add an order note
             $order->update_status('failed', __( 'Payment received is less than 60% of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));

@@ -188,11 +188,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_transficom($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_transficom($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Transfi';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_transficom');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_transficom');
 }
 
 // Add custom endpoint for changing order status

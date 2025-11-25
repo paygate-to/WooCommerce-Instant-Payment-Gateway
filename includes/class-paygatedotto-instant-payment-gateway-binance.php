@@ -192,11 +192,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_binancecom($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_binancecom($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Binance';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_binancecom');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_binancecom');
 }
 
 // Add custom endpoint for changing order status

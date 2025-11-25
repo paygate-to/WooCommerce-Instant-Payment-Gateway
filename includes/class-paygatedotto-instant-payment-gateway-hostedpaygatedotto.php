@@ -16,6 +16,10 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
     protected $icon_url;
     protected $hostedpaygatedotto_wallet_address;
     protected $hostedpaygatedotto_custom_domain;
+	protected $background_color;
+    protected $button_color;
+    protected $theme_color;
+    protected $logo_url;
 
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-hostedpaygatedotto';
@@ -29,7 +33,10 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
 
         $this->title       = sanitize_text_field($this->get_option('title'));
         $this->description = sanitize_text_field($this->get_option('description'));
-
+        $this->logo_url     = sanitize_url($this->get_option('logo_url'));
+		$this->background_color       = sanitize_text_field($this->get_option('background_color'));
+		$this->button_color       = sanitize_text_field($this->get_option('button_color'));
+		$this->theme_color       = sanitize_text_field($this->get_option('theme_color'));
         // Use the configured settings for redirect and icon URLs
         $this->hostedpaygatedotto_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('hostedpaygatedotto_custom_domain'))), '/');
         $this->hostedpaygatedotto_wallet_address = sanitize_text_field($this->get_option('hostedpaygatedotto_wallet_address'));
@@ -77,6 +84,30 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
                 'title'       => esc_html__('Icon URL', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'url',
                 'description' => esc_html__('Enter the URL of the icon image for the payment method.', 'instant-approval-payment-gateway'), // Escaping description
+                'desc_tip'    => true,
+            ),
+			'logo_url' => array(
+                'title'       => esc_html__('Custom Logo URL', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'url',
+                'description' => esc_html__('Add your own brand or website logo to the hosted checkout page.', 'instant-approval-payment-gateway'), // Escaping description
+                'desc_tip'    => true,
+            ),
+			'background_color' => array(
+                'title'       => esc_html__('Background Color', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Insert HEX color code for the hosted page background color.', 'instant-approval-payment-gateway'), // Escaping description
+                'desc_tip'    => true,
+            ),
+			'theme_color' => array(
+                'title'       => esc_html__('Theme Color', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Insert HEX color code for the hosted page theme color.', 'instant-approval-payment-gateway'), // Escaping description
+                'desc_tip'    => true,
+            ),
+			'button_color' => array(
+                'title'       => esc_html__('Button Color', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => esc_html__('Insert HEX color code for the hosted page pay button color.', 'instant-approval-payment-gateway'), // Escaping description
                 'desc_tip'    => true,
             ),
         );
@@ -179,8 +210,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->hostedpaygatedotto_custom_domain . '/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency,
-        );
+            'redirect' => 'https://' . $this->hostedpaygatedotto_custom_domain . '/pay.php?address=' . $paygatedottogateway_hostedpaygatedotto_gen_addressIn . '&amount=' . (float)$paygatedottogateway_hostedpaygatedotto_final_total . '&email=' . $paygatedottogateway_hostedpaygatedotto_email . '&currency=' . $paygatedottogateway_hostedpaygatedotto_currency . (isset($this->logo_url) && $this->logo_url ? '&logo=' . urlencode($this->logo_url) : '') . (isset($this->background_color) && $this->background_color ? '&background=' . urlencode($this->background_color) : '') . (isset($this->theme_color) && $this->theme_color ? '&theme=' . urlencode($this->theme_color) : '') . (isset($this->button_color) && $this->button_color ? '&button=' . urlencode($this->button_color) : ''),);
     }
 
 public function paygatedotto_instant_payment_gateway_get_icon_url() {
@@ -188,11 +218,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedotto_add_instant_payment_gateway_hostedpaygatedotto($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_hostedpaygatedotto($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedotto_add_instant_payment_gateway_hostedpaygatedotto');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_hostedpaygatedotto');
 }
 
 // Add custom endpoint for changing order status
