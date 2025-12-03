@@ -138,8 +138,8 @@ if ($paygatedottogateway_kryptonimcom_conversion_resp && isset($paygatedottogate
 		}
 		}
 		
-if ($paygatedottogateway_kryptonimcom_reference_total < 15) {
-paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $15 USD or more.', 'instant-approval-payment-gateway'), 'error');
+if ($paygatedottogateway_kryptonimcom_reference_total < 10) {
+paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $10 USD or more.', 'instant-approval-payment-gateway'), 'error');
 return null;
 }	
 		
