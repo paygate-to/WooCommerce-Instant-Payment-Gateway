@@ -3,13 +3,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('plugins_loaded', 'init_paygatedottogateway_revolut_gateway');
+add_action('plugins_loaded', 'init_paygatedottogateway_revolutcom_gateway');
 
-function init_paygatedottogateway_revolut_gateway() {
+function init_paygatedottogateway_revolutcom_gateway() {
     if (!class_exists('WC_Payment_Gateway')) {
         return;
     }
-
 
 class PayGateDotTo_Instant_Payment_Gateway_Revolut extends WC_Payment_Gateway {
 
@@ -50,14 +49,14 @@ class PayGateDotTo_Instant_Payment_Gateway_Revolut extends WC_Payment_Gateway {
                 'title'       => esc_html__('Title', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
                 'description' => esc_html__('Payment method title that users will see during checkout.', 'instant-approval-payment-gateway'), // Escaping description
-                'default'     => esc_html__('Credit Card', 'instant-approval-payment-gateway'), // Escaping default value
+                'default'     => esc_html__('Revolut', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
             'description' => array(
                 'title'       => esc_html__('Description', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'textarea',
                 'description' => esc_html__('Payment method description that users will see during checkout.', 'instant-approval-payment-gateway'), // Escaping description
-                'default'     => esc_html__('Pay via credit card', 'instant-approval-payment-gateway'), // Escaping default value
+                'default'     => esc_html__('Pay via Revolut', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => true,
             ),
             'revolutcom_custom_domain' => array(
@@ -111,27 +110,27 @@ class PayGateDotTo_Instant_Payment_Gateway_Revolut extends WC_Payment_Gateway {
 		$paygatedottogateway_revolutcom_nonce = wp_create_nonce( 'paygatedottogateway_revolutcom_nonce_' . $order_id );
 		$paygatedottogateway_revolutcom_callback = add_query_arg(array('order_id' => $order_id, 'nonce' => $paygatedottogateway_revolutcom_nonce,), rest_url('paygatedottogateway/v1/paygatedottogateway-revolutcom/'));
 		$paygatedottogateway_revolutcom_email = urlencode(sanitize_email($order->get_billing_email()));
-		$paygatedottogateway_revolutcom_final_total = $paygatedottogateway_revolutcom_total;
-
-if ($paygatedottogateway_revolutcom_currency === 'USD') {
-        $paygatedottogateway_revolutcom_minimumcheck = $paygatedottogateway_revolutcom_total;
+		
+		if ($paygatedottogateway_revolutcom_currency === 'USD') {
+        $paygatedottogateway_revolutcom_final_total = $paygatedottogateway_revolutcom_total;
+		$paygatedottogateway_revolutcom_reference_total = (float)$paygatedottogateway_revolutcom_final_total;
 		} else {
 		
-$paygatedottogateway_revolutcom_minimumcheck_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_revolutcom_total . '&from=' . strtolower($paygatedottogateway_revolutcom_currency), array('timeout' => 30));
+$paygatedottogateway_revolutcom_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_revolutcom_total . '&from=' . strtolower($paygatedottogateway_revolutcom_currency), array('timeout' => 30));
 
-if (is_wp_error($paygatedottogateway_revolutcom_minimumcheck_response)) {
+if (is_wp_error($paygatedottogateway_revolutcom_response)) {
     // Handle error
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed due to failed currency conversion process, please try again', 'instant-approval-payment-gateway'), 'error');
     return null;
 } else {
 
-$paygatedottogateway_revolutcom_minimumcheck_body = wp_remote_retrieve_body($paygatedottogateway_revolutcom_minimumcheck_response);
-$paygatedottogateway_revolutcom_minimum_conversion_resp = json_decode($paygatedottogateway_revolutcom_minimumcheck_body, true);
+$paygatedottogateway_revolutcom_body = wp_remote_retrieve_body($paygatedottogateway_revolutcom_response);
+$paygatedottogateway_revolutcom_conversion_resp = json_decode($paygatedottogateway_revolutcom_body, true);
 
-if ($paygatedottogateway_revolutcom_minimum_conversion_resp && isset($paygatedottogateway_revolutcom_minimum_conversion_resp['value_coin'])) {
+if ($paygatedottogateway_revolutcom_conversion_resp && isset($paygatedottogateway_revolutcom_conversion_resp['value_coin'])) {
     // Escape output
-    $paygatedottogateway_revolutcom_minimum_conversion_total	= sanitize_text_field($paygatedottogateway_revolutcom_minimum_conversion_resp['value_coin']);
-    $paygatedottogateway_revolutcom_minimumcheck = (float)$paygatedottogateway_revolutcom_minimum_conversion_total;	
+    $paygatedottogateway_revolutcom_final_total	= sanitize_text_field($paygatedottogateway_revolutcom_conversion_resp['value_coin']);
+    $paygatedottogateway_revolutcom_reference_total = (float)$paygatedottogateway_revolutcom_final_total;	
 } else {
     paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (unsupported store currency)', 'instant-approval-payment-gateway'), 'error');
     return null;
@@ -139,11 +138,11 @@ if ($paygatedottogateway_revolutcom_minimum_conversion_resp && isset($paygatedot
 		}
 		}
 		
-if ($paygatedottogateway_revolutcom_minimumcheck < 15) {
-paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $15 USD or more.', 'instant-approval-payment-gateway'), 'error');
+if ($paygatedottogateway_revolutcom_reference_total < 8) {
+paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Order total for this payment provider must be $8 USD or more.', 'instant-approval-payment-gateway'), 'error');
 return null;
-}
-	
+}	
+		
 $paygatedottogateway_revolutcom_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->revolutcom_wallet_address .'&callback=' . urlencode($paygatedottogateway_revolutcom_callback), array('timeout' => 30));
 
 if (is_wp_error($paygatedottogateway_revolutcom_gen_wallet)) {
@@ -165,6 +164,7 @@ if (is_wp_error($paygatedottogateway_revolutcom_gen_wallet)) {
     $order->add_meta_data('paygatedotto_revolutcom_polygon_temporary_order_wallet_address', $paygatedottogateway_revolutcom_gen_polygon_addressIn, true);
     $order->add_meta_data('paygatedotto_revolutcom_callback', $paygatedottogateway_revolutcom_gen_callback, true);
 	$order->add_meta_data('paygatedotto_revolutcom_converted_amount', $paygatedottogateway_revolutcom_final_total, true);
+	$order->add_meta_data('paygatedotto_revolutcom_expected_amount', $paygatedottogateway_revolutcom_reference_total, true);
 	$order->add_meta_data('paygatedotto_revolutcom_nonce', $paygatedottogateway_revolutcom_nonce, true);
     $order->save();
     } else {
@@ -183,7 +183,7 @@ if (paygatedottogateway_is_checkout_block()) {
         // Redirect to payment page
         return array(
             'result'   => 'success',
-            'redirect' => 'https://' . $this->revolutcom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_revolutcom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_revolutcom_final_total . '&provider=revolut&email=' . $paygatedottogateway_revolutcom_email . '&currency=' . $paygatedottogateway_revolutcom_currency,
+            'redirect' => 'https://' . $this->revolutcom_custom_domain . '/process-payment.php?address=' . $paygatedottogateway_revolutcom_gen_addressIn . '&amount=' . (float)$paygatedottogateway_revolutcom_total . '&provider=revolut&email=' . $paygatedottogateway_revolutcom_email . '&currency=' . $paygatedottogateway_revolutcom_currency,
         );
     }
 
@@ -192,11 +192,11 @@ public function paygatedotto_instant_payment_gateway_get_icon_url() {
     }
 }
 
-function paygatedottogateway_add_instant_payment_gateway_revolut($gateways) {
+function paygatedottogateway_add_instant_payment_gateway_revolutcom($gateways) {
     $gateways[] = 'PayGateDotTo_Instant_Payment_Gateway_Revolut';
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_revolut');
+add_filter('woocommerce_payment_gateways', 'paygatedottogateway_add_instant_payment_gateway_revolutcom');
 }
 
 // Add custom endpoint for changing order status
@@ -215,6 +215,8 @@ function paygatedottogateway_revolutcom_change_order_status_callback( $request )
     $order_id = absint($request->get_param( 'order_id' ));
 	$paygatedottogateway_revolutcomgetnonce = sanitize_text_field($request->get_param( 'nonce' ));
 	$paygatedottogateway_revolutcompaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
+	$paygatedottogateway_revolutcompaid_value_coin = sanitize_text_field($request->get_param('value_coin'));
+	$paygatedottogateway_revolutcomfloatpaid_value_coin = (float)$paygatedottogateway_revolutcompaid_value_coin;
 
     // Check if order ID parameter exists
     if ( empty( $order_id ) ) {
@@ -236,12 +238,23 @@ function paygatedottogateway_revolutcom_change_order_status_callback( $request )
 
     // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-revolut'
     if ( $order && $order->get_status() !== 'processing' && $order->get_status() !== 'completed' && 'paygatedotto-instant-payment-gateway-revolut' === $order->get_payment_method() ) {
+	$paygatedottogateway_revolutcomexpected_amount = (float)$order->get_meta('paygatedotto_revolutcom_expected_amount', true);
+	$paygatedottogateway_revolutcomthreshold = 0.60 * $paygatedottogateway_revolutcomexpected_amount;
+		if ( $paygatedottogateway_revolutcomfloatpaid_value_coin < $paygatedottogateway_revolutcomthreshold ) {
+			// Mark the order as failed and add an order note
+            $order->update_status('failed', __( 'Payment received is less than 60% of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));
+            /* translators: 1: Transaction ID */
+            $order->add_order_note(sprintf( __( 'Order marked as failed: Payment received is less than 60%% of the order total. Customer may have changed the payment values on the checkout page. TXID: %1$s', 'instant-approval-payment-gateway' ), $paygatedottogateway_revolutcompaid_txid_out));
+            return array( 'message' => 'Order status changed to failed due to partial payment.' );
+			
+		} else {
         // Change order status to processing
 		$order->payment_complete();
 		/* translators: 1: Transaction ID */
 		$order->add_order_note( sprintf(__('Payment completed by the provider TXID: %1$s', 'instant-approval-payment-gateway'), $paygatedottogateway_revolutcompaid_txid_out) );
         // Return success response
         return array( 'message' => 'Order marked as paid and status changed.' );
+		}
     } else {
         // Return error response if conditions are not met
         return new WP_Error( 'order_not_eligible', __( 'Order is not eligible for status change.', 'instant-approval-payment-gateway' ), array( 'status' => 400 ) );
