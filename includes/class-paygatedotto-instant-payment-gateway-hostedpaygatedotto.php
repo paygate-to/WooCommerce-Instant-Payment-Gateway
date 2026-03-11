@@ -242,7 +242,25 @@ function paygatedottogateway_hostedpaygatedotto_change_order_status_callback( $r
 	$paygatedottogateway_hostedpaygatedottogetnonce = sanitize_text_field($request->get_param( 'nonce' ));
 	$paygatedottogateway_hostedpaygatedottopaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
 	$paygatedottogateway_hostedpaygatedottopaid_value_coin = sanitize_text_field($request->get_param('value_coin'));
-	$paygatedottogateway_hostedpaygatedottofloatpaid_value_coin = (float)$paygatedottogateway_hostedpaygatedottopaid_value_coin;
+	$paygatedottogateway_hostedpaygatedottopaid_name_coin = sanitize_text_field($request->get_param('coin'));
+	
+	if ($paygatedottogateway_hostedpaygatedottopaid_name_coin == 'polygon_pol' || $paygatedottogateway_hostedpaygatedottopaid_name_coin == 'eth' || $paygatedottogateway_hostedpaygatedottopaid_name_coin == 'bep20_bnb') {
+	$paygatedottogateway_hostedpaygatedottopaid_strname_coin = str_replace('_', '/', $paygatedottogateway_hostedpaygatedottopaid_name_coin);
+	
+	$paygatedottogateway_hostedpaygatedottocprice_response_cbrates = wp_remote_get('https://api.paygate.to/crypto/' . $paygatedottogateway_hostedpaygatedottopaid_strname_coin . '/info.php', array('timeout' => 30));
+if (is_wp_error($paygatedottogateway_hostedpaygatedottocprice_response_cbrates)) {
+    $paygatedottogateway_hostedpaygatedottofloatpaid_value_coin = (float)$paygatedottogateway_hostedpaygatedottopaid_value_coin;
+} else {
+    $paygatedottogateway_hostedpaygatedottocprice_body_cbrates = wp_remote_retrieve_body($paygatedottogateway_hostedpaygatedottocprice_response_cbrates);
+    $paygatedottogateway_hostedpaygatedottocprice_conversion_resp_cbrates = json_decode($paygatedottogateway_hostedpaygatedottocprice_body_cbrates, true);
+    if ($paygatedottogateway_hostedpaygatedottocprice_conversion_resp_cbrates && isset($paygatedottogateway_hostedpaygatedottocprice_conversion_resp_cbrates['prices']['USD'])) {
+        $paygatedottogateway_hostedpaygatedottofloatpaid_value_coin = (float)$paygatedottogateway_hostedpaygatedottopaid_value_coin * sanitize_text_field($paygatedottogateway_hostedpaygatedottocprice_conversion_resp_cbrates['prices']['USD']);    
+    } else {
+        $paygatedottogateway_hostedpaygatedottofloatpaid_value_coin = (float)$paygatedottogateway_hostedpaygatedottopaid_value_coin;
+    }
+}
+
+	}
 
     // Check if order ID parameter exists
     if ( empty( $order_id ) ) {

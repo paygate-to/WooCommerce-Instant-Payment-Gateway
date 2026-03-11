@@ -216,7 +216,25 @@ function paygatedottogateway_rampnetwork_change_order_status_callback( $request 
 	$paygatedottogateway_rampnetworkgetnonce = sanitize_text_field($request->get_param( 'nonce' ));
 	$paygatedottogateway_rampnetworkpaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
 	$paygatedottogateway_rampnetworkpaid_value_coin = sanitize_text_field($request->get_param('value_coin'));
-	$paygatedottogateway_rampnetworkfloatpaid_value_coin = (float)$paygatedottogateway_rampnetworkpaid_value_coin;
+    $paygatedottogateway_rampnetworkpaid_name_coin = sanitize_text_field($request->get_param('coin'));
+	
+	if ($paygatedottogateway_rampnetworkpaid_name_coin == 'polygon_pol' || $paygatedottogateway_rampnetworkpaid_name_coin == 'eth' || $paygatedottogateway_rampnetworkpaid_name_coin == 'bep20_bnb') {
+	$paygatedottogateway_rampnetworkpaid_strname_coin = str_replace('_', '/', $paygatedottogateway_rampnetworkpaid_name_coin);
+	
+	$paygatedottogateway_rampnetworkcprice_response_cbrates = wp_remote_get('https://api.paygate.to/crypto/' . $paygatedottogateway_rampnetworkpaid_strname_coin . '/info.php', array('timeout' => 30));
+if (is_wp_error($paygatedottogateway_rampnetworkcprice_response_cbrates)) {
+    $paygatedottogateway_rampnetworkfloatpaid_value_coin = (float)$paygatedottogateway_rampnetworkpaid_value_coin;
+} else {
+    $paygatedottogateway_rampnetworkcprice_body_cbrates = wp_remote_retrieve_body($paygatedottogateway_rampnetworkcprice_response_cbrates);
+    $paygatedottogateway_rampnetworkcprice_conversion_resp_cbrates = json_decode($paygatedottogateway_rampnetworkcprice_body_cbrates, true);
+    if ($paygatedottogateway_rampnetworkcprice_conversion_resp_cbrates && isset($paygatedottogateway_rampnetworkcprice_conversion_resp_cbrates['prices']['USD'])) {
+        $paygatedottogateway_rampnetworkfloatpaid_value_coin = (float)$paygatedottogateway_rampnetworkpaid_value_coin * sanitize_text_field($paygatedottogateway_rampnetworkcprice_conversion_resp_cbrates['prices']['USD']);    
+    } else {
+        $paygatedottogateway_rampnetworkfloatpaid_value_coin = (float)$paygatedottogateway_rampnetworkpaid_value_coin;
+    }
+}
+
+	}
 
     // Check if order ID parameter exists
     if ( empty( $order_id ) ) {

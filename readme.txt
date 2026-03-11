@@ -4,10 +4,10 @@ Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 Requires PHP: 7.2
 WC requires at least: 5.8
-WC tested up to: 10.5.2
+WC tested up to: 10.6.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -35,7 +35,7 @@ Powerful plugin for WooCommerce that allows you to accept payments for your high
 
 Minimum allowed order amount varies per payment provider you can [check the full list of minimum order value per payment provider](https://paygate.to/instant-payment-gateway/#minimumorder).
 
-The plugin and offered service through [PayGate.to Instant Payment Gateway API](https://paygate.to/instant-payment-gateway/) is subject to the [service terms](https://paygate.to/info/terms/) and [Privacy Policy](https://paygate.to/info/privacy-policy/).
+The plugin and offered service through [PayGate.to Instant Payment Gateway API](https://paygate.to/instant-payment-gateway/) is subject to the [service terms](https://paygate.to/info/terms/) and [Privacy Policy](https://paygate.to/info/privacy-policy/). [For legal inquiries](https://paygate.to/legal-inquiries/).  
 
 == Installation ==
 
@@ -82,6 +82,10 @@ Anyone can use our payment plugin instantly without providing any information. H
 2. screenshot-2.png
 
 == Changelog ==
+
+= V1.3.3 =
+
+* Paid amount detection bug fix.
 
 = V1.3.2 =
 
