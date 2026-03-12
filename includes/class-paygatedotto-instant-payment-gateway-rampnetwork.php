@@ -234,6 +234,8 @@ if (is_wp_error($paygatedottogateway_rampnetworkcprice_response_cbrates)) {
     }
 }
 
+	} else {
+	$paygatedottogateway_rampnetworkfloatpaid_value_coin = (float)$paygatedottogateway_rampnetworkpaid_value_coin;	
 	}
 
     // Check if order ID parameter exists

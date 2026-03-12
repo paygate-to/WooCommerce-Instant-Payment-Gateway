@@ -260,6 +260,8 @@ if (is_wp_error($paygatedottogateway_hostedpaygatedottocprice_response_cbrates))
     }
 }
 
+	} else {
+	$paygatedottogateway_hostedpaygatedottofloatpaid_value_coin = (float)$paygatedottogateway_hostedpaygatedottopaid_value_coin;	
 	}
 
     // Check if order ID parameter exists
