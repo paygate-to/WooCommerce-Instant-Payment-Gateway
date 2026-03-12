@@ -108,7 +108,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
                     '0.30' => '70%',
                     '0.20' => '80%',
                     '0.10' => '90%',
-                    '0' => 'ETH Payouts (Disabled amount detection)'
+                    '0' => 'Disabled amount detection'
                 ),
             ),
             'icon_url' => array(
@@ -258,7 +258,27 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
 	$paygatedottogateway_customprovidergetnonce = sanitize_text_field($request->get_param( 'nonce' ));
 	$paygatedottogateway_customproviderpaid_txid_out = sanitize_text_field($request->get_param('txid_out'));
 	$paygatedottogateway_customproviderpaid_value_coin = sanitize_text_field($request->get_param('value_coin'));
-	$paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
+	$paygatedottogateway_customproviderpaid_name_coin = sanitize_text_field($request->get_param('coin'));
+	
+	if ($paygatedottogateway_customproviderpaid_name_coin == 'polygon_pol' || $paygatedottogateway_customproviderpaid_name_coin == 'eth' || $paygatedottogateway_customproviderpaid_name_coin == 'bep20_bnb') {
+	$paygatedottogateway_customproviderpaid_strname_coin = str_replace('_', '/', $paygatedottogateway_customproviderpaid_name_coin);
+	
+	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get('https://api.paygate.to/crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php', array('timeout' => 30));
+if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
+    $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
+} else {
+    $paygatedottogateway_customprovidercprice_body_cbrates = wp_remote_retrieve_body($paygatedottogateway_customprovidercprice_response_cbrates);
+    $paygatedottogateway_customprovidercprice_conversion_resp_cbrates = json_decode($paygatedottogateway_customprovidercprice_body_cbrates, true);
+    if ($paygatedottogateway_customprovidercprice_conversion_resp_cbrates && isset($paygatedottogateway_customprovidercprice_conversion_resp_cbrates['prices']['USD'])) {
+        $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin * sanitize_text_field($paygatedottogateway_customprovidercprice_conversion_resp_cbrates['prices']['USD']);    
+    } else {
+        $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
+    }
+}
+
+	} else {
+	$paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;	
+	}
 
     // Check if order ID parameter exists
     if ( empty( $order_id ) ) {
@@ -284,9 +304,9 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
 	$paygatedottogateway_customproviderthreshold = $order->get_meta('paygatedotto_customprovider_tolerance_percentage', true) * $paygatedottogateway_customproviderexpected_amount;
 		if ( $paygatedottogateway_customproviderfloatpaid_value_coin < $paygatedottogateway_customproviderthreshold ) {
 			// Mark the order as failed and add an order note
-            $order->update_status('failed', __( 'Payment received is less than 60% of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));
+            $order->update_status('failed', __( 'Payment received is less than tolerance percentage of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));
             /* translators: 1: Transaction ID */
-            $order->add_order_note(sprintf( __( 'Order marked as failed: Payment received is less than 60%% of the order total. Customer may have changed the payment values on the checkout page. TXID: %1$s', 'instant-approval-payment-gateway' ), $paygatedottogateway_customproviderpaid_txid_out));
+            $order->add_order_note(sprintf( __( 'Order marked as failed: Payment received is less than tolerance percentage of the order total. Customer may have changed the payment values on the checkout page. TXID: %1$s', 'instant-approval-payment-gateway' ), $paygatedottogateway_customproviderpaid_txid_out));
             return array( 'message' => 'Order status changed to failed due to partial payment.' );
 			
 		} else {

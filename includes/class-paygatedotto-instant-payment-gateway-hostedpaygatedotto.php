@@ -40,6 +40,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
         // Use the configured settings for redirect and icon URLs
         $this->hostedpaygatedotto_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('hostedpaygatedotto_custom_domain'))), '/');
         $this->hostedpaygatedotto_wallet_address = sanitize_text_field($this->get_option('hostedpaygatedotto_wallet_address'));
+		$this->hostedpaygatedotto_tolerance_percentage = sanitize_text_field($this->get_option('hostedpaygatedotto_tolerance_percentage'));
         $this->icon_url     = sanitize_url($this->get_option('icon_url'));
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -79,6 +80,25 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
                 'type'        => 'text',
                 'description' => esc_html__('Insert your USDC (Polygon) wallet address to receive instant payouts. Payouts maybe sent in ETH or USDC or USDT (Polygon or BEP-20) or POL native token. Same wallet should work to receive all. Make sure you use a self-custodial wallet to receive payouts.', 'instant-approval-payment-gateway'), // Escaping description
                 'desc_tip'    => true,
+            ),
+			'hostedpaygatedotto_tolerance_percentage' => array(
+                'title'       => esc_html__('Fees Tolerance', 'instant-approval-payment-gateway'),
+                'type'        => 'select',
+                'description' => esc_html__('Select percentage to tolerate higher provider fees while detecting manipulation by bad customers at checkout page.', 'instant-approval-payment-gateway'),
+                'desc_tip'    => true,
+                'default'     => '0.60',
+                'options'     => array(
+                    '0.90'    => '10%',
+                    '0.80' => '20%',
+                    '0.70' => '30%',
+                    '0.60' => '40%',
+                    '0.50' => '50%',
+                    '0.40' => '60%',
+                    '0.30' => '70%',
+                    '0.20' => '80%',
+                    '0.10' => '90%',
+                    '0' => 'Disabled amount detection'
+                ),
             ),
             'icon_url' => array(
                 'title'       => esc_html__('Icon URL', 'instant-approval-payment-gateway'), // Escaping title
@@ -140,6 +160,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
         $paygatedottogateway_hostedpaygatedotto_currency = get_woocommerce_currency();
 		$paygatedottogateway_hostedpaygatedotto_total = $order->get_total();
 		$paygatedottogateway_hostedpaygatedotto_nonce = wp_create_nonce( 'paygatedottogateway_hostedpaygatedotto_nonce_' . $order_id );
+		$paygatedottogateway_hostedpaygatedotto_tolerance_percentage = $this->hostedpaygatedotto_tolerance_percentage;
 		$paygatedottogateway_hostedpaygatedotto_callback = add_query_arg(array('order_id' => $order_id, 'nonce' => $paygatedottogateway_hostedpaygatedotto_nonce,), rest_url('paygatedottogateway/v1/paygatedottogateway-hostedpaygatedotto/'));
 		$paygatedottogateway_hostedpaygatedotto_email = urlencode(sanitize_email($order->get_billing_email()));
 		$paygatedottogateway_hostedpaygatedotto_final_total = $paygatedottogateway_hostedpaygatedotto_total;
@@ -193,6 +214,7 @@ if (is_wp_error($paygatedottogateway_hostedpaygatedotto_gen_wallet)) {
 	$order->add_meta_data('paygatedotto_hostedpaygatedotto_converted_amount', $paygatedottogateway_hostedpaygatedotto_final_total, true);
 	$order->add_meta_data('paygatedotto_hostedpaygatedotto_expected_amount', $paygatedottogateway_hostedpaygatedotto_reference_total, true);
 	$order->add_meta_data('paygatedotto_hostedpaygatedotto_nonce', $paygatedottogateway_hostedpaygatedotto_nonce, true);
+	$order->add_meta_data('paygatedotto_hostedpaygatedotto_tolerance_percentage', $paygatedottogateway_hostedpaygatedotto_tolerance_percentage, true);
     $order->save();
     } else {
         paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (wallet address error)', 'instant-approval-payment-gateway'), 'error');
@@ -285,12 +307,12 @@ if (is_wp_error($paygatedottogateway_hostedpaygatedottocprice_response_cbrates))
     // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-hostedpaygatedotto'
     if ( $order && $order->get_status() !== 'processing' && $order->get_status() !== 'completed' && 'paygatedotto-instant-payment-gateway-hostedpaygatedotto' === $order->get_payment_method() ) {
 	$paygatedottogateway_hostedpaygatedottoexpected_amount = (float)$order->get_meta('paygatedotto_hostedpaygatedotto_expected_amount', true);
-	$paygatedottogateway_hostedpaygatedottothreshold = 0.60 * $paygatedottogateway_hostedpaygatedottoexpected_amount;
+	$paygatedottogateway_hostedpaygatedottothreshold = $order->get_meta('paygatedotto_hostedpaygatedotto_tolerance_percentage', true) * $paygatedottogateway_hostedpaygatedottoexpected_amount;
 		if ( $paygatedottogateway_hostedpaygatedottofloatpaid_value_coin < $paygatedottogateway_hostedpaygatedottothreshold ) {
 			// Mark the order as failed and add an order note
-            $order->update_status('failed', __( 'Payment received is less than 60% of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));
+            $order->update_status('failed', __( 'Payment received is less than tolerance percentage of the order total. Customer may have changed the payment values on the checkout page.', 'instant-approval-payment-gateway' ));
             /* translators: 1: Transaction ID */
-            $order->add_order_note(sprintf( __( 'Order marked as failed: Payment received is less than 60%% of the order total. Customer may have changed the payment values on the checkout page. TXID: %1$s', 'instant-approval-payment-gateway' ), $paygatedottogateway_hostedpaygatedottopaid_txid_out));
+            $order->add_order_note(sprintf( __( 'Order marked as failed: Payment received is less than tolerance percentage of the order total. Customer may have changed the payment values on the checkout page. TXID: %1$s', 'instant-approval-payment-gateway' ), $paygatedottogateway_hostedpaygatedottopaid_txid_out));
             return array( 'message' => 'Order status changed to failed due to partial payment.' );
 			
 		} else {
