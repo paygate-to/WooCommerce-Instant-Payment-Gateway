@@ -3,12 +3,12 @@
  * Plugin Name: Instant Approval Payment Gateway with Instant Payouts
  * Plugin URI: https://paygate.to/instant-payment-gateway/
  * Description: Instant Approval High Risk Merchant Gateway with instant payouts to your USDC wallet.
- * Version: 1.3.5
+ * Version: 1.3.6
  * Requires Plugins: woocommerce
  * Requires at least: 5.8
  * Tested up to: 6.9
  * WC requires at least: 5.8
- * WC tested up to: 10.6.0
+ * WC tested up to: 10.6.2
  * Requires PHP: 7.2
  * Author: PayGate.to
  * Author URI: https://paygate.to/
@@ -96,7 +96,6 @@ add_action('wp_enqueue_scripts', 'paygatedottogateway_enqueue_styles');
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-transfi.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-sardine.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-topper.php'); // Include the payment gateway class
-	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-cryptix.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-bitnovo.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-robinhood.php'); // Include the payment gateway class
 	include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-upi.php'); // Include the payment gateway class

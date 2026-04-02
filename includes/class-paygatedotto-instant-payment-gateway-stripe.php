@@ -19,7 +19,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Stripe extends WC_Payment_Gateway {
     public function __construct() {
         $this->id                 = 'paygatedotto-instant-payment-gateway-stripe';
         $this->icon = sanitize_url($this->get_option('icon_url'));
-        $this->method_title       = esc_html__('Instant Approval Payment Gateway with Instant Payouts (stripe.com)', 'instant-approval-payment-gateway'); // Escaping title
+        $this->method_title       = esc_html__('Instant Approval Payment Gateway with Instant Payouts (stripe.com) USA Only', 'instant-approval-payment-gateway'); // Escaping title
         $this->method_description = esc_html__('Instant Approval High Risk Merchant Gateway with instant payouts to your USDC POLYGON wallet using stripe.com infrastructure', 'instant-approval-payment-gateway'); // Escaping description
         $this->has_fields         = false;
 

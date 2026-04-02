@@ -19,6 +19,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Hostedpaygatedotto extends WC_Payment
 	protected $background_color;
     protected $button_color;
     protected $theme_color;
+	protected $hostedpaygatedotto_tolerance_percentage;
     protected $logo_url;
 
     public function __construct() {
