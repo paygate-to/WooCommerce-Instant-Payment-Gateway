@@ -173,12 +173,6 @@ if (is_wp_error($paygatedottogateway_banxacom_gen_wallet)) {
     }
 }
 
-// Check if the Checkout page is using Checkout Blocks
-if (paygatedottogateway_is_checkout_block()) {
-    global $woocommerce;
-	$woocommerce->cart->empty_cart();
-}
-
         // Redirect to payment page
         return array(
             'result'   => 'success',

@@ -3,11 +3,11 @@ Contributors: paygatedotto
 Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
-Tested up to: 6.9
-Stable tag: 1.3.7
+Tested up to: 7.0
+Stable tag: 1.3.8
 Requires PHP: 7.2
 WC requires at least: 5.8
-WC tested up to: 10.6.2
+WC tested up to: 10.8.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -82,6 +82,10 @@ Anyone can use our payment plugin instantly without providing any information. H
 2. screenshot-2.png
 
 == Changelog ==
+
+= V1.3.8 =
+
+* Fix WooCommerce blocks cart page bug fake dummy items added to cart.
 
 = V1.3.7 =
 
