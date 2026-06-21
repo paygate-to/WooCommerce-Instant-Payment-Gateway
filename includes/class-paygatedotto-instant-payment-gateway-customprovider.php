@@ -3,9 +3,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('plugins_loaded', 'init_paygatedottogateway_customprovider_gateway');
+add_action('plugins_loaded', 'paygatedottogateway_customprovider_init_gateway');
 
-function init_paygatedottogateway_customprovider_gateway() {
+function paygatedottogateway_customprovider_init_gateway() {
     if (!class_exists('WC_Payment_Gateway')) {
         return;
     }
@@ -68,9 +68,13 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
             'customprovider_custom_domain' => array(
                 'title'       => esc_html__('Custom Domain', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
-                'description' => esc_html__('Follow the custom domain guide to use your own domain name for the checkout pages and links.', 'instant-approval-payment-gateway'), // Escaping description
+                'description' => sprintf(
+    /* translators: %s: link to the custom domain guide */
+    esc_html__('Follow the %s to use your own domain name for the checkout pages and links.', 'instant-approval-payment-gateway'),
+    '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
+), // Escaping description
                 'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
-                'desc_tip'    => true,
+                'desc_tip'    => false,
             ),
             'customprovider_wallet_address' => array(
                 'title'       => esc_html__('Wallet Address', 'instant-approval-payment-gateway'), // Escaping title
@@ -81,9 +85,13 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
 			'customprovider_custom_provider_tag' => array(
                 'title'       => esc_html__('Custom Provider Tag', 'instant-approval-payment-gateway'), // Escaping title
                 'type'        => 'text',
-                'description' => esc_html__('Insert custom provider tag per the API docs or contact paygate.to support for further instructions.', 'instant-approval-payment-gateway'), // Escaping description
+                'description' => sprintf(
+        /* translators: %s: link to the provider tag list */
+        esc_html__('Insert custom provider tag per the API docs or contact paygate.to support for further instructions. See the %s for available tags.', 'instant-approval-payment-gateway'),
+        '<a href="' . esc_url('https://api.paygate.to/control/provider-status/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('provider tag list', 'instant-approval-payment-gateway') . '</a>'
+    ), // Escaping description
                 'default'     => esc_html__('moonpay', 'instant-approval-payment-gateway'), // Escaping default value
-				'desc_tip'    => true,
+				'desc_tip'    => false,
             ),
 			'customprovider_custom_minimum_amount' => array(
                 'title'       => esc_html__('Minimum Amount', 'instant-approval-payment-gateway'), // Escaping title
