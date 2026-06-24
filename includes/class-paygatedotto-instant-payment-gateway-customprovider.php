@@ -73,7 +73,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
     esc_html__('Follow the %s to use your own domain name for the checkout pages and links.', 'instant-approval-payment-gateway'),
     '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
 ), // Escaping description
-                'default'     => esc_html__('checkout.paygate.to', 'instant-approval-payment-gateway'), // Escaping default value
+                'default'     => esc_html__('checkout.paygate.sbs', 'instant-approval-payment-gateway'), // Escaping default value
                 'desc_tip'    => false,
             ),
             'customprovider_wallet_address' => array(
