@@ -4,12 +4,12 @@
  * Plugin Name: Instant Approval Payment Gateway with Instant Payouts
  * Plugin URI: https://paygate.to/instant-payment-gateway/
  * Description: Instant Approval High Risk Merchant Gateway with instant payouts to your USDC wallet.
- * Version: 1.4.2
+ * Version: 1.4.3
  * Requires Plugins: woocommerce
  * Requires at least: 5.8
- * Tested up to: 7.0
+ * Tested up to: 7.1
  * WC requires at least: 5.8
- * WC tested up to: 11.0.0
+ * WC tested up to: 11.1.0
  * Requires PHP: 7.2
  * Author: PayGate.to
  * Author URI: https://paygate.to/
@@ -114,6 +114,7 @@ function paygatedottogateway_enqueue_styles()
 }
 add_action('wp_enqueue_scripts', 'paygatedottogateway_enqueue_styles');
 
+include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-callback-signature.php'); // PayGate callback signature verification (loads before the gateways)
 include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-hostedpaygatedotto.php'); // Include the payment gateway class
 include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-customprovider.php'); // Include the payment gateway class
 

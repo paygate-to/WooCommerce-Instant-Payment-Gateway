@@ -225,6 +225,13 @@ if (is_wp_error($paygatedottogateway_customprovider_gen_wallet)) {
 	$order->add_meta_data('paygatedotto_customprovider_expected_amount', $paygatedottogateway_customprovider_reference_total, true);
 	$order->add_meta_data('paygatedotto_customprovider_nonce', $paygatedottogateway_customprovider_nonce, true);
 	$order->add_meta_data('paygatedotto_customprovider_tolerance_percentage', $paygatedottogateway_customprovider_tolerance_percentage, true);
+	// Signature verification: remember the callback URL WE registered with PayGate
+	// (that exact string is what PayGate signs, with its payment parameters
+	// appended), and mark this order as requiring a signed callback. Orders created
+	// before this plugin version carry no such mark, so their pending callbacks are
+	// still accepted unsigned.
+	$order->add_meta_data('paygatedotto_customprovider_signature_base', $paygatedottogateway_customprovider_callback, true);
+	$order->add_meta_data('paygatedotto_customprovider_signature_required', 'yes', true);
     $order->save();
     } else {
         paygatedottogateway_add_notice(__('Payment error:', 'instant-approval-payment-gateway') . __('Payment could not be processed, please try again (wallet address error)', 'instant-approval-payment-gateway'), 'error');
@@ -307,6 +314,14 @@ if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
 	// Verify nonce
     if ( empty( $paygatedottogateway_customprovidergetnonce ) || $order->get_meta('paygatedotto_customprovider_nonce', true) !== $paygatedottogateway_customprovidergetnonce ) {
         return new WP_Error( 'invalid_nonce', __( 'Invalid nonce.', 'instant-approval-payment-gateway' ), array( 'status' => 403 ) );
+    }
+
+    // Verify PayGate's RSA signature over the exact callback URL before trusting
+    // any payment parameter. value_coin above is caller-supplied, so without this
+    // check a forged request could complete an unpaid order.
+    $paygatedottogateway_customprovider_sig_error = paygatedotto_signature_guard( $request, $order, 'paygatedotto_customprovider' );
+    if ( $paygatedottogateway_customprovider_sig_error instanceof WP_Error ) {
+        return $paygatedottogateway_customprovider_sig_error;
     }
 
     // Check if the order is pending and payment method is 'paygatedotto-instant-payment-gateway-customprovider'
