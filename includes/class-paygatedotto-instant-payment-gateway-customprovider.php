@@ -319,7 +319,7 @@ if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
     // Verify PayGate's RSA signature over the exact callback URL before trusting
     // any payment parameter. value_coin above is caller-supplied, so without this
     // check a forged request could complete an unpaid order.
-    $paygatedottogateway_customprovider_sig_error = paygatedotto_signature_guard( $request, $order, 'paygatedotto_customprovider' );
+    $paygatedottogateway_customprovider_sig_error = paygatedottogateway_signature_guard( $request, $order, 'paygatedotto_customprovider' );
     if ( $paygatedottogateway_customprovider_sig_error instanceof WP_Error ) {
         return $paygatedottogateway_customprovider_sig_error;
     }

@@ -30,8 +30,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!defined('PAYGATEDOTTO_SIGNATURE_DIR')) {
-    define('PAYGATEDOTTO_SIGNATURE_DIR', __DIR__ . '/keys');
+if (!defined('PAYGATEDOTTOGATEWAY_SIGNATURE_DIR')) {
+    define('PAYGATEDOTTOGATEWAY_SIGNATURE_DIR', __DIR__ . '/keys');
 }
 
 /**
@@ -42,25 +42,25 @@ if (!defined('PAYGATEDOTTO_SIGNATURE_DIR')) {
  * "cannot verify" rather than "invalid": the caller decides how to handle that
  * (we fail closed, but log a distinct reason so the cause is diagnosable).
  *
- * @param string $paygatedotto_signature_key_id Key id from X-PayGate-Key-Id.
+ * @param string $paygatedottogateway_signature_key_id Key id from X-PayGate-Key-Id.
  * @return string|false PEM contents, or false when the id is not shipped.
  */
-function paygatedotto_signature_get_public_key($paygatedotto_signature_key_id) {
+function paygatedottogateway_signature_get_public_key($paygatedottogateway_signature_key_id) {
     // Whitelist the id to a bare filename; never let a header reach the filesystem.
-    if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $paygatedotto_signature_key_id)) {
+    if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $paygatedottogateway_signature_key_id)) {
         return false;
     }
 
-    $paygatedotto_signature_path = PAYGATEDOTTO_SIGNATURE_DIR . '/paygate_callback_public_' . $paygatedotto_signature_key_id . '.pem';
+    $paygatedottogateway_signature_path = PAYGATEDOTTOGATEWAY_SIGNATURE_DIR . '/paygate_callback_public_' . $paygatedottogateway_signature_key_id . '.pem';
 
-    if (!is_readable($paygatedotto_signature_path)) {
+    if (!is_readable($paygatedottogateway_signature_path)) {
         return false;
     }
 
-    $paygatedotto_signature_pem = file_get_contents($paygatedotto_signature_path);
+    $paygatedottogateway_signature_pem = file_get_contents($paygatedottogateway_signature_path);
 
-    return (is_string($paygatedotto_signature_pem) && '' !== $paygatedotto_signature_pem)
-        ? $paygatedotto_signature_pem
+    return (is_string($paygatedottogateway_signature_pem) && '' !== $paygatedottogateway_signature_pem)
+        ? $paygatedottogateway_signature_pem
         : false;
 }
 
@@ -79,29 +79,29 @@ function paygatedotto_signature_get_public_key($paygatedotto_signature_key_id) {
  * In the plain case the path is /index.php and rest_route travels in the query
  * string, which the raw query string preserves verbatim.
  *
- * @param string $paygatedotto_signature_callback_url The registered callback URL.
+ * @param string $paygatedottogateway_signature_callback_url The registered callback URL.
  * @return string|false Base URL without query/fragment, or false if unparsable.
  */
-function paygatedotto_signature_base_from_callback($paygatedotto_signature_callback_url) {
-    if (!is_string($paygatedotto_signature_callback_url) || '' === $paygatedotto_signature_callback_url) {
+function paygatedottogateway_signature_base_from_callback($paygatedottogateway_signature_callback_url) {
+    if (!is_string($paygatedottogateway_signature_callback_url) || '' === $paygatedottogateway_signature_callback_url) {
         return false;
     }
 
-    $paygatedotto_signature_parts = wp_parse_url($paygatedotto_signature_callback_url);
+    $paygatedottogateway_signature_parts = wp_parse_url($paygatedottogateway_signature_callback_url);
 
-    if (!is_array($paygatedotto_signature_parts) || empty($paygatedotto_signature_parts['scheme']) || empty($paygatedotto_signature_parts['host'])) {
+    if (!is_array($paygatedottogateway_signature_parts) || empty($paygatedottogateway_signature_parts['scheme']) || empty($paygatedottogateway_signature_parts['host'])) {
         return false;
     }
 
-    $paygatedotto_signature_port = isset($paygatedotto_signature_parts['port'])
-        ? ':' . (int) $paygatedotto_signature_parts['port']
+    $paygatedottogateway_signature_port = isset($paygatedottogateway_signature_parts['port'])
+        ? ':' . (int) $paygatedottogateway_signature_parts['port']
         : '';
 
-    $paygatedotto_signature_path = isset($paygatedotto_signature_parts['path'])
-        ? $paygatedotto_signature_parts['path']
+    $paygatedottogateway_signature_path = isset($paygatedottogateway_signature_parts['path'])
+        ? $paygatedottogateway_signature_parts['path']
         : '/';
 
-    return $paygatedotto_signature_parts['scheme'] . '://' . $paygatedotto_signature_parts['host'] . $paygatedotto_signature_port . $paygatedotto_signature_path;
+    return $paygatedottogateway_signature_parts['scheme'] . '://' . $paygatedottogateway_signature_parts['host'] . $paygatedottogateway_signature_port . $paygatedottogateway_signature_path;
 }
 
 /**
@@ -109,7 +109,7 @@ function paygatedotto_signature_base_from_callback($paygatedotto_signature_callb
  *
  * @return string
  */
-function paygatedotto_signature_raw_query_string() {
+function paygatedottogateway_signature_raw_query_string() {
     // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- must stay byte-exact for signature verification; never used as output or in a query.
     return isset($_SERVER['QUERY_STRING']) ? (string) wp_unslash($_SERVER['QUERY_STRING']) : '';
 }
@@ -117,23 +117,23 @@ function paygatedotto_signature_raw_query_string() {
 /**
  * Read a request header, preferring the WP_REST_Request copy.
  *
- * @param WP_REST_Request|null $paygatedotto_signature_request Request object, if available.
- * @param string               $paygatedotto_signature_header  Header name, e.g. 'X-PayGate-Signature'.
+ * @param WP_REST_Request|null $paygatedottogateway_signature_request Request object, if available.
+ * @param string               $paygatedottogateway_signature_header  Header name, e.g. 'X-PayGate-Signature'.
  * @return string Header value, or '' when absent.
  */
-function paygatedotto_signature_read_header($paygatedotto_signature_request, $paygatedotto_signature_header) {
-    if ($paygatedotto_signature_request instanceof WP_REST_Request) {
-        $paygatedotto_signature_value = $paygatedotto_signature_request->get_header($paygatedotto_signature_header);
-        if (is_string($paygatedotto_signature_value) && '' !== $paygatedotto_signature_value) {
-            return trim($paygatedotto_signature_value);
+function paygatedottogateway_signature_read_header($paygatedottogateway_signature_request, $paygatedottogateway_signature_header) {
+    if ($paygatedottogateway_signature_request instanceof WP_REST_Request) {
+        $paygatedottogateway_signature_value = $paygatedottogateway_signature_request->get_header($paygatedottogateway_signature_header);
+        if (is_string($paygatedottogateway_signature_value) && '' !== $paygatedottogateway_signature_value) {
+            return trim($paygatedottogateway_signature_value);
         }
     }
 
-    $paygatedotto_signature_server_key = 'HTTP_' . strtoupper(str_replace('-', '_', $paygatedotto_signature_header));
+    $paygatedottogateway_signature_server_key = 'HTTP_' . strtoupper(str_replace('-', '_', $paygatedottogateway_signature_header));
 
-    if (isset($_SERVER[$paygatedotto_signature_server_key])) {
+    if (isset($_SERVER[$paygatedottogateway_signature_server_key])) {
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared cryptographically / whitelisted by regex, never output.
-        return trim((string) wp_unslash($_SERVER[$paygatedotto_signature_server_key]));
+        return trim((string) wp_unslash($_SERVER[$paygatedottogateway_signature_server_key]));
     }
 
     return '';
@@ -142,18 +142,18 @@ function paygatedotto_signature_read_header($paygatedotto_signature_request, $pa
 /**
  * Verify the PayGate signature on the current callback request.
  *
- * @param WP_REST_Request|null $paygatedotto_signature_request      Current REST request.
- * @param string               $paygatedotto_signature_callback_url Callback URL registered for this order.
+ * @param WP_REST_Request|null $paygatedottogateway_signature_request      Current REST request.
+ * @param string               $paygatedottogateway_signature_callback_url Callback URL registered for this order.
  * @return array {
  *     @type bool   $verified True only when a signature was present and valid.
  *     @type bool   $present  Whether a signature header was supplied at all.
  *     @type string $reason   Machine-readable reason when not verified.
  * }
  */
-function paygatedotto_signature_verify_callback($paygatedotto_signature_request, $paygatedotto_signature_callback_url) {
-    $paygatedotto_signature_b64 = paygatedotto_signature_read_header($paygatedotto_signature_request, 'X-PayGate-Signature');
+function paygatedottogateway_signature_verify_callback($paygatedottogateway_signature_request, $paygatedottogateway_signature_callback_url) {
+    $paygatedottogateway_signature_b64 = paygatedottogateway_signature_read_header($paygatedottogateway_signature_request, 'X-PayGate-Signature');
 
-    if ('' === $paygatedotto_signature_b64) {
+    if ('' === $paygatedottogateway_signature_b64) {
         return array('verified' => false, 'present' => false, 'reason' => 'signature_absent');
     }
 
@@ -161,44 +161,44 @@ function paygatedotto_signature_verify_callback($paygatedotto_signature_request,
         return array('verified' => false, 'present' => true, 'reason' => 'openssl_unavailable');
     }
 
-    $paygatedotto_signature_key_id = paygatedotto_signature_read_header($paygatedotto_signature_request, 'X-PayGate-Key-Id');
-    if ('' === $paygatedotto_signature_key_id) {
-        $paygatedotto_signature_key_id = 'v1';
+    $paygatedottogateway_signature_key_id = paygatedottogateway_signature_read_header($paygatedottogateway_signature_request, 'X-PayGate-Key-Id');
+    if ('' === $paygatedottogateway_signature_key_id) {
+        $paygatedottogateway_signature_key_id = 'v1';
     }
 
-    $paygatedotto_signature_pem = paygatedotto_signature_get_public_key($paygatedotto_signature_key_id);
-    if (false === $paygatedotto_signature_pem) {
+    $paygatedottogateway_signature_pem = paygatedottogateway_signature_get_public_key($paygatedottogateway_signature_key_id);
+    if (false === $paygatedottogateway_signature_pem) {
         return array('verified' => false, 'present' => true, 'reason' => 'unknown_key_id');
     }
 
-    $paygatedotto_signature_public_key = openssl_pkey_get_public($paygatedotto_signature_pem);
-    if (false === $paygatedotto_signature_public_key) {
+    $paygatedottogateway_signature_public_key = openssl_pkey_get_public($paygatedottogateway_signature_pem);
+    if (false === $paygatedottogateway_signature_public_key) {
         return array('verified' => false, 'present' => true, 'reason' => 'bad_public_key');
     }
 
-    $paygatedotto_signature_raw = base64_decode($paygatedotto_signature_b64, true);
-    if (false === $paygatedotto_signature_raw || '' === $paygatedotto_signature_raw) {
+    $paygatedottogateway_signature_raw = base64_decode($paygatedottogateway_signature_b64, true);
+    if (false === $paygatedottogateway_signature_raw || '' === $paygatedottogateway_signature_raw) {
         return array('verified' => false, 'present' => true, 'reason' => 'signature_not_base64');
     }
 
-    $paygatedotto_signature_base = paygatedotto_signature_base_from_callback($paygatedotto_signature_callback_url);
-    if (false === $paygatedotto_signature_base) {
+    $paygatedottogateway_signature_base = paygatedottogateway_signature_base_from_callback($paygatedottogateway_signature_callback_url);
+    if (false === $paygatedottogateway_signature_base) {
         return array('verified' => false, 'present' => true, 'reason' => 'no_registered_callback');
     }
 
-    $paygatedotto_signature_query  = paygatedotto_signature_raw_query_string();
-    $paygatedotto_signature_signed = ('' === $paygatedotto_signature_query)
-        ? $paygatedotto_signature_base
-        : $paygatedotto_signature_base . '?' . $paygatedotto_signature_query;
+    $paygatedottogateway_signature_query  = paygatedottogateway_signature_raw_query_string();
+    $paygatedottogateway_signature_signed = ('' === $paygatedottogateway_signature_query)
+        ? $paygatedottogateway_signature_base
+        : $paygatedottogateway_signature_base . '?' . $paygatedottogateway_signature_query;
 
-    $paygatedotto_signature_result = openssl_verify(
-        $paygatedotto_signature_signed,
-        $paygatedotto_signature_raw,
-        $paygatedotto_signature_public_key,
+    $paygatedottogateway_signature_result = openssl_verify(
+        $paygatedottogateway_signature_signed,
+        $paygatedottogateway_signature_raw,
+        $paygatedottogateway_signature_public_key,
         OPENSSL_ALGO_SHA256
     );
 
-    if (1 === $paygatedotto_signature_result) {
+    if (1 === $paygatedottogateway_signature_result) {
         return array('verified' => true, 'present' => true, 'reason' => '');
     }
 
@@ -206,7 +206,7 @@ function paygatedotto_signature_verify_callback($paygatedotto_signature_request,
     return array(
         'verified' => false,
         'present'  => true,
-        'reason'   => (-1 === $paygatedotto_signature_result) ? 'openssl_error' : 'signature_mismatch',
+        'reason'   => (-1 === $paygatedottogateway_signature_result) ? 'openssl_error' : 'signature_mismatch',
     );
 }
 
@@ -224,34 +224,34 @@ function paygatedotto_signature_verify_callback($paygatedotto_signature_request,
  *
  * In both cases a present-but-invalid signature always fails.
  *
- * @param WP_REST_Request|null $paygatedotto_signature_request Current REST request.
- * @param WC_Order             $paygatedotto_signature_order   Order being confirmed.
- * @param string               $paygatedotto_signature_prefix  Meta prefix, e.g. 'paygatedotto_dynamic'.
+ * @param WP_REST_Request|null $paygatedottogateway_signature_request Current REST request.
+ * @param WC_Order             $paygatedottogateway_signature_order   Order being confirmed.
+ * @param string               $paygatedottogateway_signature_prefix  Meta prefix, e.g. 'paygatedotto_dynamic'.
  * @return WP_Error|null WP_Error to return from the callback, or null to proceed.
  */
-function paygatedotto_signature_guard($paygatedotto_signature_request, $paygatedotto_signature_order, $paygatedotto_signature_prefix) {
-    $paygatedotto_signature_callback_url = $paygatedotto_signature_order->get_meta($paygatedotto_signature_prefix . '_signature_base', true);
+function paygatedottogateway_signature_guard($paygatedottogateway_signature_request, $paygatedottogateway_signature_order, $paygatedottogateway_signature_prefix) {
+    $paygatedottogateway_signature_callback_url = $paygatedottogateway_signature_order->get_meta($paygatedottogateway_signature_prefix . '_signature_base', true);
 
-    if ('' === $paygatedotto_signature_callback_url) {
+    if ('' === $paygatedottogateway_signature_callback_url) {
         // Fall back to the callback URL echoed back by PayGate at wallet creation.
-        $paygatedotto_signature_callback_url = $paygatedotto_signature_order->get_meta($paygatedotto_signature_prefix . '_callback', true);
+        $paygatedottogateway_signature_callback_url = $paygatedottogateway_signature_order->get_meta($paygatedottogateway_signature_prefix . '_callback', true);
     }
 
-    $paygatedotto_signature_required = ('yes' === $paygatedotto_signature_order->get_meta($paygatedotto_signature_prefix . '_signature_required', true));
+    $paygatedottogateway_signature_required = ('yes' === $paygatedottogateway_signature_order->get_meta($paygatedottogateway_signature_prefix . '_signature_required', true));
 
-    $paygatedotto_signature_check = paygatedotto_signature_verify_callback($paygatedotto_signature_request, $paygatedotto_signature_callback_url);
+    $paygatedottogateway_signature_check = paygatedottogateway_signature_verify_callback($paygatedottogateway_signature_request, $paygatedottogateway_signature_callback_url);
 
-    if (true === $paygatedotto_signature_check['verified']) {
+    if (true === $paygatedottogateway_signature_check['verified']) {
         return null;
     }
 
     // Present but not valid: always reject, whatever the order's vintage.
-    if (true === $paygatedotto_signature_check['present']) {
-        $paygatedotto_signature_order->add_order_note(
+    if (true === $paygatedottogateway_signature_check['present']) {
+        $paygatedottogateway_signature_order->add_order_note(
             sprintf(
                 /* translators: 1: machine-readable failure reason */
                 __('[Security] Rejected a payment callback whose PayGate signature did not verify (%1$s). No order status was changed.', 'instant-approval-payment-gateway'),
-                $paygatedotto_signature_check['reason']
+                $paygatedottogateway_signature_check['reason']
             )
         );
 
@@ -263,8 +263,8 @@ function paygatedotto_signature_guard($paygatedotto_signature_request, $paygated
     }
 
     // Absent signature on an order that requires one: reject.
-    if ($paygatedotto_signature_required) {
-        $paygatedotto_signature_order->add_order_note(
+    if ($paygatedottogateway_signature_required) {
+        $paygatedottogateway_signature_order->add_order_note(
             __('[Security] Rejected an unsigned payment callback. This order requires a signed PayGate callback. No order status was changed.', 'instant-approval-payment-gateway')
         );
 
@@ -276,7 +276,7 @@ function paygatedotto_signature_guard($paygatedotto_signature_request, $paygated
     }
 
     // Absent signature on a legacy order: allow, but record it.
-    $paygatedotto_signature_order->add_order_note(
+    $paygatedottogateway_signature_order->add_order_note(
         __('[Notice] Payment callback arrived without a PayGate signature and was accepted because this order predates signature verification.', 'instant-approval-payment-gateway')
     );
 
