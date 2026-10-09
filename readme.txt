@@ -4,7 +4,7 @@ Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
 Tested up to: 7.1
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 Requires PHP: 7.2
 WC requires at least: 5.8
 WC tested up to: 11.1.0
@@ -82,6 +82,10 @@ Anyone can use our payment plugin instantly without providing any information. H
 2. screenshot-2.png
 
 == Changelog ==
+
+= V1.4.5 =
+
+* Bug fix.
 
 = V1.4.4 =
 

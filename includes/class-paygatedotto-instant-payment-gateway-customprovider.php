@@ -173,7 +173,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
 		$paygatedottogateway_customprovider_reference_total = (float)$paygatedottogateway_customprovider_final_total;
 		} else {
 		
-$paygatedottogateway_customprovider_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_customprovider_total . '&from=' . strtolower($paygatedottogateway_customprovider_currency), array('timeout' => 30));
+$paygatedottogateway_customprovider_response = wp_remote_get('https://' . $this->customprovider_custom_domain . '/control/convert.php?value=' . $paygatedottogateway_customprovider_total . '&from=' . strtolower($paygatedottogateway_customprovider_currency), array('timeout' => 30));
 
 if (is_wp_error($paygatedottogateway_customprovider_response)) {
     // Handle error
@@ -201,7 +201,7 @@ paygatedottogateway_add_notice(sprintf( __('Payment error: Order total for this 
 return null;
 }	
 		
-$paygatedottogateway_customprovider_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->customprovider_wallet_address .'&callback=' . urlencode($paygatedottogateway_customprovider_callback), array('timeout' => 30));
+$paygatedottogateway_customprovider_gen_wallet = wp_remote_get('https://' . $this->customprovider_custom_domain . '/control/wallet.php?address=' . $this->customprovider_wallet_address .'&callback=' . urlencode($paygatedottogateway_customprovider_callback), array('timeout' => 30));
 
 if (is_wp_error($paygatedottogateway_customprovider_gen_wallet)) {
     // Handle error
@@ -281,7 +281,7 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
 	if ($paygatedottogateway_customproviderpaid_name_coin == 'polygon_pol' || $paygatedottogateway_customproviderpaid_name_coin == 'eth' || $paygatedottogateway_customproviderpaid_name_coin == 'bep20_bnb') {
 	$paygatedottogateway_customproviderpaid_strname_coin = str_replace('_', '/', $paygatedottogateway_customproviderpaid_name_coin);
 	
-	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get('https://api.paygate.to/crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php', array('timeout' => 30));
+	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get('https://' . $this->customprovider_custom_domain . '/crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php', array('timeout' => 30));
 if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
     $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
 } else {
