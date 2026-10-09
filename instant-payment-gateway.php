@@ -4,7 +4,7 @@
  * Plugin Name: Instant Approval Payment Gateway with Instant Payouts
  * Plugin URI: https://paygate.to/instant-payment-gateway/
  * Description: Instant Approval High Risk Merchant Gateway with instant payouts to your USDC wallet.
- * Version: 1.4.4
+ * Version: 1.4.6
  * Requires Plugins: woocommerce
  * Requires at least: 5.8
  * Tested up to: 7.1
@@ -113,6 +113,89 @@ function paygatedottogateway_enqueue_styles()
     }
 }
 add_action('wp_enqueue_scripts', 'paygatedottogateway_enqueue_styles');
+
+/**
+ * Default PayGate hosts, used when a gateway's custom domain setting is empty.
+ */
+if (!defined('PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN')) {
+    define('PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN', 'api.paygate.to');
+}
+if (!defined('PAYGATEDOTTOGATEWAY_DEFAULT_CHECKOUT_DOMAIN')) {
+    define('PAYGATEDOTTOGATEWAY_DEFAULT_CHECKOUT_DOMAIN', 'checkout.paygate.sbs');
+}
+
+/**
+ * Normalise a custom domain setting to a bare host (optionally with a path).
+ *
+ * Strips the scheme, surrounding whitespace and trailing slashes, so admins can
+ * paste either "api.example.com" or "https://api.example.com/". Falls back to
+ * the given default when the value is empty or not a valid host.
+ *
+ * @param string $paygatedottogateway_domain  Raw setting value.
+ * @param string $paygatedottogateway_default Fallback host.
+ * @return string
+ */
+function paygatedottogateway_sanitize_domain($paygatedottogateway_domain, $paygatedottogateway_default = '')
+{
+    $paygatedottogateway_domain = trim(sanitize_text_field((string) $paygatedottogateway_domain));
+    $paygatedottogateway_domain = preg_replace('#^https?://#i', '', $paygatedottogateway_domain);
+    $paygatedottogateway_domain = rtrim($paygatedottogateway_domain, '/');
+
+    if ('' === $paygatedottogateway_domain) {
+        return $paygatedottogateway_default;
+    }
+
+    $paygatedottogateway_host = wp_parse_url('https://' . $paygatedottogateway_domain, PHP_URL_HOST);
+    if (empty($paygatedottogateway_host) || !preg_match('/^[A-Za-z0-9.-]+$/', $paygatedottogateway_host)) {
+        return $paygatedottogateway_default;
+    }
+
+    return $paygatedottogateway_domain;
+}
+
+/**
+ * Read a gateway's configured API domain outside the gateway instance (e.g. in
+ * the REST payment callback), falling back to the default PayGate API host.
+ *
+ * @param string $paygatedottogateway_gateway_id Gateway id.
+ * @param string $paygatedottogateway_option_key Settings key holding the API domain.
+ * @return string
+ */
+function paygatedottogateway_get_api_domain($paygatedottogateway_gateway_id, $paygatedottogateway_option_key)
+{
+    $paygatedottogateway_settings = get_option('woocommerce_' . $paygatedottogateway_gateway_id . '_settings', array());
+    $paygatedottogateway_value    = (is_array($paygatedottogateway_settings) && isset($paygatedottogateway_settings[$paygatedottogateway_option_key]))
+        ? $paygatedottogateway_settings[$paygatedottogateway_option_key]
+        : '';
+
+    return paygatedottogateway_sanitize_domain($paygatedottogateway_value, PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN);
+}
+
+/**
+ * Build a PayGate API URL on the configured (custom or default) API domain.
+ *
+ * Query values are RFC 3986 encoded via add_query_arg() and the final URL is
+ * passed through esc_url_raw() before being used in wp_remote_get().
+ *
+ * @param string $paygatedottogateway_domain Sanitised API domain.
+ * @param string $paygatedottogateway_path   Endpoint path, e.g. "control/wallet.php".
+ * @param array  $paygatedottogateway_args   Query arguments (unencoded).
+ * @return string
+ */
+function paygatedottogateway_api_url($paygatedottogateway_domain, $paygatedottogateway_path, $paygatedottogateway_args = array())
+{
+    if ('' === (string) $paygatedottogateway_domain) {
+        $paygatedottogateway_domain = PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN;
+    }
+
+    $paygatedottogateway_url = 'https://' . $paygatedottogateway_domain . '/' . ltrim($paygatedottogateway_path, '/');
+
+    if (!empty($paygatedottogateway_args)) {
+        $paygatedottogateway_url = add_query_arg(array_map('rawurlencode', array_map('strval', $paygatedottogateway_args)), $paygatedottogateway_url);
+    }
+
+    return esc_url_raw($paygatedottogateway_url);
+}
 
 include_once(plugin_dir_path(__FILE__) . 'includes/paygatedottogateway-callback-signature.php'); // PayGate callback signature verification (loads before the gateways)
 include_once(plugin_dir_path(__FILE__) . 'includes/class-paygatedotto-instant-payment-gateway-hostedpaygatedotto.php'); // Include the payment gateway class

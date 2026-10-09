@@ -15,6 +15,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
     protected $icon_url;
     protected $customprovider_wallet_address;
     protected $customprovider_custom_domain;
+    protected $customprovider_custom_api_domain;
 	protected $customprovider_custom_provider_tag;
 	protected $customprovider_custom_minimum_amount;
 	protected $customprovider_tolerance_percentage;
@@ -33,7 +34,8 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
         $this->description = sanitize_text_field($this->get_option('description'));
 
         // Use the configured settings for redirect and icon URLs
-        $this->customprovider_custom_domain = rtrim(str_replace(['https://','http://'], '', sanitize_text_field($this->get_option('customprovider_custom_domain'))), '/');
+        $this->customprovider_custom_domain = paygatedottogateway_sanitize_domain($this->get_option('customprovider_custom_domain'), PAYGATEDOTTOGATEWAY_DEFAULT_CHECKOUT_DOMAIN);
+        $this->customprovider_custom_api_domain = paygatedottogateway_sanitize_domain($this->get_option('customprovider_custom_api_domain'), PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN);
         $this->customprovider_wallet_address = sanitize_text_field($this->get_option('customprovider_wallet_address'));
 		$this->customprovider_custom_provider_tag = sanitize_text_field($this->get_option('customprovider_custom_provider_tag'));
 		$this->customprovider_tolerance_percentage = sanitize_text_field($this->get_option('customprovider_tolerance_percentage'));
@@ -74,6 +76,18 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
     '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
 ), // Escaping description
                 'default'     => esc_html__('checkout.paygate.sbs', 'instant-approval-payment-gateway'), // Escaping default value
+                'desc_tip'    => false,
+            ),
+            'customprovider_custom_api_domain' => array(
+                'title'       => esc_html__('Custom API Domain', 'instant-approval-payment-gateway'), // Escaping title
+                'type'        => 'text',
+                'description' => sprintf(
+    /* translators: %s: link to the custom domain guide */
+    esc_html__('Follow the %s to use your own domain name for all API calls (wallet generation, currency conversion and payout rate checks). Leave as api.paygate.to to use the default API.', 'instant-approval-payment-gateway'),
+    '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
+), // Escaping description
+                'default'     => PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN,
+                'placeholder' => PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN,
                 'desc_tip'    => false,
             ),
             'customprovider_wallet_address' => array(
@@ -127,6 +141,20 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
             ),
         );
     }
+    /**
+     * Normalise the checkout domain on save (WC_Settings_API validate_{key}_field hook).
+     */
+    public function validate_customprovider_custom_domain_field($key, $value) {
+        return paygatedottogateway_sanitize_domain(is_null($value) ? '' : wp_unslash($value), PAYGATEDOTTOGATEWAY_DEFAULT_CHECKOUT_DOMAIN);
+    }
+
+    /**
+     * Normalise the API domain on save (WC_Settings_API validate_{key}_field hook).
+     */
+    public function validate_customprovider_custom_api_domain_field($key, $value) {
+        return paygatedottogateway_sanitize_domain(is_null($value) ? '' : wp_unslash($value), PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN);
+    }
+
 	 // Add this method to validate the wallet address in wp-admin
     public function process_admin_options() {
 		if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'woocommerce-settings')) {
@@ -173,7 +201,7 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
 		$paygatedottogateway_customprovider_reference_total = (float)$paygatedottogateway_customprovider_final_total;
 		} else {
 		
-$paygatedottogateway_customprovider_response = wp_remote_get('https://api.paygate.to/control/convert.php?value=' . $paygatedottogateway_customprovider_total . '&from=' . strtolower($paygatedottogateway_customprovider_currency), array('timeout' => 30));
+$paygatedottogateway_customprovider_response = wp_remote_get(paygatedottogateway_api_url($this->customprovider_custom_api_domain, 'control/convert.php', array('value' => $paygatedottogateway_customprovider_total, 'from' => strtolower($paygatedottogateway_customprovider_currency))), array('timeout' => 30));
 
 if (is_wp_error($paygatedottogateway_customprovider_response)) {
     // Handle error
@@ -201,7 +229,7 @@ paygatedottogateway_add_notice(sprintf( __('Payment error: Order total for this 
 return null;
 }	
 		
-$paygatedottogateway_customprovider_gen_wallet = wp_remote_get('https://api.paygate.to/control/wallet.php?address=' . $this->customprovider_wallet_address .'&callback=' . urlencode($paygatedottogateway_customprovider_callback), array('timeout' => 30));
+$paygatedottogateway_customprovider_gen_wallet = wp_remote_get(paygatedottogateway_api_url($this->customprovider_custom_api_domain, 'control/wallet.php', array('address' => $this->customprovider_wallet_address, 'callback' => $paygatedottogateway_customprovider_callback)), array('timeout' => 30));
 
 if (is_wp_error($paygatedottogateway_customprovider_gen_wallet)) {
     // Handle error
@@ -281,7 +309,7 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
 	if ($paygatedottogateway_customproviderpaid_name_coin == 'polygon_pol' || $paygatedottogateway_customproviderpaid_name_coin == 'eth' || $paygatedottogateway_customproviderpaid_name_coin == 'bep20_bnb') {
 	$paygatedottogateway_customproviderpaid_strname_coin = str_replace('_', '/', $paygatedottogateway_customproviderpaid_name_coin);
 	
-	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get('https://api.paygate.to/crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php', array('timeout' => 30));
+	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get(paygatedottogateway_api_url(paygatedottogateway_get_api_domain('paygatedotto-instant-payment-gateway-customprovider', 'customprovider_custom_api_domain'), 'crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php'), array('timeout' => 30));
 if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
     $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
 } else {
