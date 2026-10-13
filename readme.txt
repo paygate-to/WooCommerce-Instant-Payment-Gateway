@@ -3,11 +3,11 @@ Contributors: paygatedotto
 Donate link: https://paygate.to/
 Tags: woocommerce,payment,instant,gateway
 Requires at least: 5.8
-Tested up to: 7.1
-Stable tag: 1.4.6
+Tested up to: 7.1.3
+Stable tag: 1.4.7
 Requires PHP: 7.2
 WC requires at least: 5.8
-WC tested up to: 11.1.0
+WC tested up to: 11.2.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -82,6 +82,11 @@ Anyone can use our payment plugin instantly without providing any information. H
 2. screenshot-2.png
 
 == Changelog ==
+
+= V1.4.7 =
+
+* Added: reminder and guide link to set your free dedicated API endpoint in Custom API Domain.
+
 
 = V1.4.6 =
 

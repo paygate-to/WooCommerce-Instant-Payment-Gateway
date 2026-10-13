@@ -83,8 +83,8 @@ class PayGateDotTo_Instant_Payment_Gateway_Customprovider extends WC_Payment_Gat
                 'type'        => 'text',
                 'description' => sprintf(
     /* translators: %s: link to the custom domain guide */
-    esc_html__('Follow the %s to use your own domain name for all API calls (wallet generation, currency conversion and payout rate checks). Leave as api.paygate.to to use the default API.', 'instant-approval-payment-gateway'),
-    '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
+    esc_html__('Paste your free dedicated API endpoint from the %s (for example api-yourshop-1a2b….paygate.to) to keep payments running when the shared api.paygate.to is under attack. You can also use your own white-label domain. Leave as api.paygate.to to use the shared API.', 'instant-approval-payment-gateway'),
+    '<a href="' . esc_url('https://paygate.to/white-label-api-custom-domain-guide/#dedicated-endpoint') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('custom domain guide', 'instant-approval-payment-gateway') . '</a>'
 ), // Escaping description
                 'default'     => PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN,
                 'placeholder' => PAYGATEDOTTOGATEWAY_DEFAULT_API_DOMAIN,
