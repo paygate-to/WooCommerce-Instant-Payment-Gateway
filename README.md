@@ -60,7 +60,7 @@ Instant WooCommerce payment gateway to accept credit or debit cards or Google Pa
 | Fees Tolerance | How far below the total a payment may be before the order is marked Failed. | 40% |
 | Icon URL | Icon shown at checkout. | empty |
 | Custom Logo URL, Background / Theme / Button Color | Branding of the hosted page (hosted mode). | empty |
-| Custom Provider Tag, Minimum Amount | Provider and USD minimum (custom provider mode). [Provider list](https://api.paygate.to/control/provider-status/). | moonpay, 15 |
+| Payment Providers, Minimum Amount | Custom provider mode: tick one or more providers from the live [provider list](https://api.paygate.to/control/provider-status/), loaded each time the settings page opens. With more than one, customers choose at checkout. Each provider's own minimum is checked, plus your USD Minimum Amount. | –, 15 |
 
 ## Order statuses
 
