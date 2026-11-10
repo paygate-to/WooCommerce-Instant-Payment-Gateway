@@ -1,2 +1,3 @@
 # Keep the screenshots out of downloaded zips and Composer packages
 /docs export-ignore
+/.gitattributes export-ignore

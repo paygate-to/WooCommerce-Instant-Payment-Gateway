@@ -626,14 +626,14 @@ function paygatedottogateway_customprovider_change_order_status_callback( $reque
 	
 	$paygatedottogateway_customprovidercprice_response_cbrates = wp_remote_get(paygatedottogateway_api_url(paygatedottogateway_get_api_domain('paygatedotto-instant-payment-gateway-customprovider', 'customprovider_custom_api_domain'), 'crypto/' . $paygatedottogateway_customproviderpaid_strname_coin . '/info.php'), array('timeout' => 30));
 if (is_wp_error($paygatedottogateway_customprovidercprice_response_cbrates)) {
-    $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
+    return new WP_Error( 'paygatedottogateway_price_unavailable', __( 'Coin price is unavailable, please retry the callback.', 'instant-approval-payment-gateway' ), array( 'status' => 503 ) ); // never value coin units as USD
 } else {
     $paygatedottogateway_customprovidercprice_body_cbrates = wp_remote_retrieve_body($paygatedottogateway_customprovidercprice_response_cbrates);
     $paygatedottogateway_customprovidercprice_conversion_resp_cbrates = json_decode($paygatedottogateway_customprovidercprice_body_cbrates, true);
     if ($paygatedottogateway_customprovidercprice_conversion_resp_cbrates && isset($paygatedottogateway_customprovidercprice_conversion_resp_cbrates['prices']['USD'])) {
         $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin * sanitize_text_field($paygatedottogateway_customprovidercprice_conversion_resp_cbrates['prices']['USD']);    
     } else {
-        $paygatedottogateway_customproviderfloatpaid_value_coin = (float)$paygatedottogateway_customproviderpaid_value_coin;
+        return new WP_Error( 'paygatedottogateway_price_unavailable', __( 'Coin price is unavailable, please retry the callback.', 'instant-approval-payment-gateway' ), array( 'status' => 503 ) ); // never value coin units as USD
     }
 }
 
